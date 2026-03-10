@@ -1,0 +1,1650 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  THE COMPASS — Exam (GitHub Pages版)
+  ============================================================
+  フロントエンド: GitHub Pages (このファイル)
+  バックエンド: Google Apps Script (認証・PDF生成・メール送信)
+  音声: 同ディレクトリの audio/compass_listening.mp3
+  ============================================================
+-->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>THE COMPASS | TCK Workshop Academic English Proficiency Check</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Crimson+Pro:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:#1a1a2e; --paper:#faf9f6; --accent:#2d5a87; --accent-light:#e8f0f8;
+  --coral:#c44536; --gold:#b8860b; --border:#d4d0c8; --muted:#6b6b6b;
+  --b1:#3a9d5c; --b2:#2d5a87; --c1:#8b2252;
+  --green:#22c55e; --red:#ef4444; --blue-hl:#93c5fd; --red-hl:#fca5a5; --green-hl:#86efac; --yellow-hl:#fde68a;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Crimson Pro',Georgia,serif;background:var(--paper);color:var(--ink);line-height:1.7;font-size:17px;}
+.container{max-width:880px;margin:0 auto;padding:32px 24px;}
+
+/* Header */
+.header{text-align:center;padding:40px 20px;border:3px solid var(--ink);margin-bottom:40px;background:#fff;position:relative;}
+.header::before{content:'';position:absolute;top:6px;left:6px;right:6px;bottom:6px;border:1px solid var(--border);pointer-events:none;}
+.header .org{font-family:'DM Sans',sans-serif;font-weight:700;font-size:13px;letter-spacing:4px;text-transform:uppercase;color:var(--accent);margin-bottom:12px;}
+.header h1{font-family:'Crimson Pro',serif;font-size:28px;font-weight:700;line-height:1.3;margin-bottom:4px;}
+.header .sub{font-family:'DM Sans',sans-serif;font-size:14px;color:var(--muted);margin-bottom:16px;}
+.meta{display:flex;justify-content:center;gap:24px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--muted);padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;}
+
+/* Info */
+.info{background:var(--accent-light);border-left:4px solid var(--accent);padding:16px 20px;margin-bottom:32px;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.7;}
+.info strong{color:var(--accent);}
+
+/* Section */
+.section{margin-bottom:48px;}
+.sec-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;padding-bottom:8px;border-bottom:2px solid var(--ink);flex-wrap:wrap;}
+.badge{font-family:'DM Sans',sans-serif;font-weight:700;font-size:12px;letter-spacing:2px;text-transform:uppercase;color:#fff;padding:5px 14px;}
+.sec-title{font-family:'DM Sans',sans-serif;font-weight:600;font-size:17px;}
+.sec-pts{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--muted);}
+
+.sub-title{font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;color:var(--muted);margin-bottom:10px;padding-left:12px;border-left:3px solid var(--border);}
+.directions{font-family:'DM Sans',sans-serif;font-size:13.5px;font-style:italic;color:var(--muted);margin-bottom:16px;padding:10px 14px;background:#f5f4f0;border-radius:4px;}
+.audio-note{display:flex;align-items:center;gap:10px;padding:12px 18px;background:#fef9e7;border:1px solid #f0e4b8;margin-bottom:18px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--gold);}
+
+/* Question */
+.q-block{margin-bottom:24px;padding:14px 16px;border:1px solid transparent;border-radius:6px;transition:all .2s;}
+.q-block.answered{border-color:#d1fae5;background:#f0fdf4;}
+.q-block.wrong{border-color:#fecaca;background:#fef2f2;}
+.q-block.correct{border-color:#bbf7d0;background:#f0fdf4;}
+.q-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.q-num{font-family:'JetBrains Mono',monospace;font-weight:500;font-size:14px;color:var(--accent);}
+.cefr{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;letter-spacing:1px;padding:1px 7px;border-radius:3px;color:#fff;}
+.cefr-b1{background:var(--b1);}.cefr-b2{background:var(--b2);}.cefr-c1{background:var(--c1);}
+.pts-tag{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);}
+
+/* MC Options */
+.mc-options{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin-top:8px;}
+.mc-options.single{grid-template-columns:1fr;}
+.mc-opt{display:flex;align-items:baseline;gap:8px;padding:8px 12px;border:2px solid var(--border);border-radius:6px;cursor:pointer;font-family:'DM Sans',sans-serif;font-size:14.5px;transition:all .15s;user-select:none;}
+.mc-opt:hover{border-color:var(--accent);background:var(--accent-light);}
+.mc-opt.selected{border-color:var(--accent);background:var(--accent-light);font-weight:600;}
+.mc-opt.correct-answer{border-color:var(--green);background:#dcfce7;}
+.mc-opt.wrong-answer{border-color:var(--red);background:#fee2e2;text-decoration:line-through;opacity:.7;}
+.mc-label{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);flex-shrink:0;}
+
+/* Text Input */
+.text-input{font-family:'DM Sans',sans-serif;font-size:15px;padding:8px 14px;border:2px solid var(--border);border-radius:6px;width:100%;max-width:320px;margin-top:6px;transition:border-color .2s;}
+.text-input:focus{outline:none;border-color:var(--accent);}
+.text-input.correct{border-color:var(--green);background:#dcfce7;}
+.text-input.wrong{border-color:var(--red);background:#fee2e2;}
+
+/* Error ID - clickable underlines */
+.error-sent{font-size:16.5px;line-height:1.8;margin-bottom:8px;}
+.err-part{text-decoration:underline;text-decoration-color:var(--coral);text-underline-offset:4px;font-weight:600;cursor:pointer;padding:2px 4px;border-radius:3px;transition:all .15s;}
+.err-part:hover{background:#fef3c7;}
+.err-part.selected{background:#fde68a;box-shadow:0 0 0 2px var(--gold);}
+.err-part.correct-answer{background:#dcfce7;box-shadow:0 0 0 2px var(--green);}
+.err-part.wrong-answer{background:#fee2e2;box-shadow:0 0 0 2px var(--red);}
+.err-note{font-family:'DM Sans',sans-serif;font-size:12px;color:var(--muted);margin-top:4px;}
+
+/* Passage */
+.passage{background:#fff;border:1px solid var(--border);padding:22px 26px;margin-bottom:18px;font-size:16px;line-height:1.85;}
+.passage p{margin-bottom:12px;}.passage p:last-child{margin-bottom:0;}
+
+/* Split-pane Reading layout */
+.reading-split{display:flex;gap:16px;align-items:flex-start;margin-bottom:20px;}
+.reading-passage-sticky{flex:0 0 48%;position:sticky;top:80px;max-height:calc(100vh - 100px);overflow-y:auto;border:1px solid var(--border);border-radius:8px;background:#fff;padding:18px 20px;font-size:14.5px;line-height:1.8;}
+.reading-passage-sticky::-webkit-scrollbar{width:6px;}
+.reading-passage-sticky::-webkit-scrollbar-thumb{background:#ccc;border-radius:3px;}
+.reading-passage-sticky p{margin-bottom:10px;}
+.reading-passage-sticky p:last-child{margin-bottom:0;}
+.reading-passage-sticky .passage-title{font-weight:700;color:var(--primary);font-size:13px;letter-spacing:.5px;margin-bottom:10px;padding-bottom:8px;border-bottom:2px solid #eee;}
+.reading-questions{flex:1;min-width:0;}
+@media(max-width:768px){
+  .reading-split{flex-direction:column;}
+  .reading-passage-sticky{position:relative;top:auto;max-height:300px;flex:none;width:100%;}
+}
+.bold-w{font-weight:700;}
+
+/* Writing */
+.essay-area{width:100%;min-height:200px;padding:16px;border:2px solid var(--border);border-radius:6px;font-family:'Crimson Pro',serif;font-size:16px;line-height:1.8;resize:vertical;transition:border-color .2s;}
+.essay-area:focus{outline:none;border-color:var(--accent);}
+.essay-area:disabled{opacity:.5;background:#f5f5f5;}
+.topic-selector{display:flex;flex-direction:column;gap:10px;margin-bottom:16px;}
+.topic-card{padding:14px 18px;border:2px solid var(--border);border-radius:8px;cursor:pointer;transition:all .2s;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.6;background:#fff;user-select:none;}
+.topic-card:hover{border-color:var(--accent);background:var(--accent-light);}
+.topic-card.selected{border-color:var(--accent);background:var(--accent-light);box-shadow:0 0 0 3px rgba(45,90,135,.15);}
+.topic-card .topic-label{font-weight:700;font-size:13px;color:var(--accent);margin-bottom:4px;display:flex;align-items:center;gap:8px;}
+.topic-card .topic-label .check{width:20px;height:20px;border:2px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.topic-card.selected .topic-label .check{background:var(--accent);border-color:var(--accent);color:#fff;font-size:12px;}
+.topic-card .topic-text{color:var(--ink);padding-left:28px;}
+.word-count{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--muted);text-align:right;margin-top:4px;}
+.submit-essay{font-family:'DM Sans',sans-serif;font-weight:600;font-size:14px;padding:10px 28px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;margin-top:12px;transition:all .2s;}
+.submit-essay:hover{background:#1e3f5f;}
+.submit-essay:disabled{opacity:.5;cursor:not-allowed;}
+.ai-feedback{margin-top:16px;padding:20px;background:#fff;border:1px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.8;display:none;}
+.ai-feedback.show{display:block;}
+.ai-loading{display:none;align-items:center;gap:10px;margin-top:12px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--muted);}
+.ai-loading.show{display:flex;}
+.spinner{width:20px;height:20px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* Score Table */
+.score-section{margin-top:48px;padding-top:24px;border-top:3px double var(--ink);}
+.score-section h2{font-family:'DM Sans',sans-serif;font-size:20px;font-weight:700;text-align:center;letter-spacing:2px;text-transform:uppercase;margin-bottom:20px;}
+table.score-tbl{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-serif;font-size:14px;margin-bottom:24px;}
+.score-tbl th,.score-tbl td{border:1px solid var(--border);padding:10px 14px;text-align:center;}
+.score-tbl th{background:var(--ink);color:#fff;font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase;}
+.score-tbl .total{background:var(--accent-light);font-weight:700;}
+
+/* School Matching */
+.school-tbl{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-serif;font-size:12.5px;margin-bottom:24px;}
+.school-tbl th,.school-tbl td{border:1px solid var(--border);padding:7px 10px;text-align:center;}
+.school-tbl th{background:#f5f4f0;font-weight:600;font-size:11px;}
+.school-tbl .sname{text-align:left;font-weight:600;font-size:13px;}
+.rating-a{color:var(--green);font-weight:700;}.rating-b{color:var(--accent);font-weight:700;}
+.rating-c{color:var(--gold);font-weight:700;}.rating-d{color:var(--coral);font-weight:700;}
+
+/* Submit / Grade */
+.grade-btn{display:block;margin:32px auto;padding:16px 48px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:16px;background:var(--ink);color:#fff;border:none;border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:1px;}
+.grade-btn:hover{background:#2d2d5e;transform:translateY(-1px);}
+.grade-btn:disabled{opacity:.5;cursor:not-allowed;}
+
+.feedback{font-family:'DM Sans',sans-serif;font-size:13px;margin-top:4px;padding:4px 8px;border-radius:4px;}
+.feedback.correct{color:#166534;background:#dcfce7;}
+.feedback.wrong{color:#991b1b;background:#fee2e2;}
+
+/* Responsive */
+@media(max-width:600px){.container{padding:12px 10px;}.mc-options{grid-template-columns:1fr;}.passage{padding:14px 10px;}}
+
+/* === COMPASS BRANDING === */
+.compass-hero{background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 50%,#0a0a0a 100%);padding:48px 20px;text-align:center;margin-bottom:0;border-bottom:4px solid #ccff00;}
+.compass-logo{font-family:'Anton',sans-serif;font-size:clamp(3rem,10vw,5rem);color:#1a1a2e;letter-spacing:-2px;line-height:.85;margin-bottom:8px;}
+.compass-logo span{color:#ccff00;}
+.compass-by{font-family:'Montserrat',sans-serif;font-weight:900;font-size:11px;letter-spacing:4px;text-transform:uppercase;color:#00f0ff;background:#0a0a0a;display:inline-block;padding:4px 12px;margin-bottom:10px;}
+.compass-sub{font-family:'DM Sans',sans-serif;font-size:14px;color:#999;margin-bottom:16px;}
+.compass-meta{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;font-family:'JetBrains Mono',monospace;font-size:12px;}
+.compass-meta span{color:#ccff00;background:rgba(204,255,0,.1);padding:3px 10px;border:1px solid rgba(204,255,0,.3);border-radius:3px;}
+
+/* Timer bar */
+.timer-bar{position:sticky;top:0;z-index:100;background:#0a0a0a;border-bottom:2px solid #ccff00;padding:8px 20px;display:flex;align-items:center;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:14px;color:#fff;}
+.timer-bar .clock{color:#ccff00;font-size:18px;font-weight:700;}
+.timer-bar .status{font-size:12px;color:#999;}
+.timer-bar .status.listening-active{color:#00f0ff;animation:pulse 1.5s infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* Audio player panel */
+.audio-panel{background:#111;border:2px solid #333;border-radius:8px;padding:16px 20px;margin-bottom:24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.audio-panel .play-btn{width:48px;height:48px;border-radius:50%;background:#ccff00;color:#0a0a0a;border:none;cursor:pointer;font-size:20px;display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.audio-panel .play-btn:hover{transform:scale(1.1);box-shadow:0 0 16px rgba(204,255,0,.4);}
+.audio-panel .play-btn:disabled{opacity:.4;cursor:not-allowed;transform:none;box-shadow:none;}
+.audio-panel .play-btn.playing{background:#00f0ff;animation:pulse 1s infinite;}
+.audio-info{flex:1;min-width:200px;}
+.audio-info .track-label{font-family:'DM Sans',sans-serif;font-size:13px;color:#ccc;}
+.audio-info .track-title{font-family:'DM Sans',sans-serif;font-size:15px;font-weight:600;color:#fff;margin-top:2px;}
+.progress-bar{width:100%;height:6px;background:#333;border-radius:3px;margin-top:8px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#ccff00,#00f0ff);width:0%;transition:width .3s;border-radius:3px;}
+.vol-control{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+.vol-control label{font-size:16px;}
+.vol-control input[type=range]{width:80px;accent-color:#ccff00;}
+
+/* Fixed volume widget - top right */
+.vol-fixed{position:fixed;top:12px;right:16px;z-index:200;background:#0a0a0aee;border:2px solid #ccff00;border-radius:10px;padding:8px 14px;display:flex;align-items:center;gap:8px;font-family:'JetBrains Mono',monospace;font-size:12px;color:#ccff00;box-shadow:0 4px 20px rgba(204,255,0,.15);backdrop-filter:blur(8px);opacity:0;pointer-events:none;transition:opacity .3s;}
+.vol-fixed.show{opacity:1;pointer-events:auto;}
+.vol-fixed label{cursor:pointer;font-size:18px;}
+.vol-fixed input[type=range]{width:90px;accent-color:#ccff00;height:4px;}
+.vol-fixed .vol-val{min-width:28px;text-align:right;}
+.audio-warning{font-family:'DM Sans',sans-serif;font-size:12px;color:#ff4d00;margin-top:8px;text-align:center;}
+/* Instruction Landing Page */
+.landing{min-height:100vh;background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 50%,#0a0a0a 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;color:#fff;transition:opacity .4s;}
+.landing.hidden{opacity:0;pointer-events:none;position:absolute;top:0;left:0;}
+.landing-logo{font-family:'Anton',sans-serif;font-size:clamp(3.5rem,12vw,6rem);color:#fff;letter-spacing:-2px;line-height:.85;margin-bottom:24px;text-align:center;}
+.landing-logo span{color:#ccff00;}
+.landing-card{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:28px 32px;max-width:700px;width:100%;backdrop-filter:blur(4px);margin-bottom:24px;}
+.landing-card h2{font-family:'DM Sans',sans-serif;font-weight:700;font-size:16px;color:#ccff00;margin-bottom:14px;letter-spacing:1px;}
+.landing-card p,.landing-card li{font-family:'DM Sans',sans-serif;font-size:13.5px;color:#ccc;line-height:1.7;margin-bottom:8px;}
+.landing-card li{list-style:none;padding-left:0;}
+.landing-card li::before{content:'▸ ';color:#ccff00;}
+.overview-tbl{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-serif;font-size:13px;margin-top:10px;}
+.overview-tbl th{background:rgba(204,255,0,.12);color:#ccff00;font-weight:700;font-size:11px;letter-spacing:1px;text-transform:uppercase;padding:8px 10px;text-align:left;border-bottom:1px solid rgba(255,255,255,.15);}
+.overview-tbl td{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,.06);color:#ddd;}
+.overview-tbl td:first-child{font-weight:600;color:#fff;}
+.overview-tbl tr:last-child td{border-bottom:none;}
+.overview-tbl .total-row td{font-weight:700;color:#ccff00;border-top:2px solid rgba(204,255,0,.3);}
+.start-btn-big{display:block;margin:0 auto;padding:18px 56px;font-family:'Anton',sans-serif;font-size:24px;letter-spacing:2px;background:#ccff00;color:#0a0a0a;border:none;border-radius:8px;cursor:pointer;transition:all .25s;text-transform:uppercase;}
+.start-btn-big:hover{transform:scale(1.05);box-shadow:0 0 30px rgba(204,255,0,.35);}
+.exam-wrap{display:none;}
+.exam-wrap.show{display:block;}
+
+.audio-played-msg{font-family:'DM Sans',sans-serif;font-size:13px;color:#666;text-align:center;padding:12px;border:1px dashed #444;border-radius:6px;margin-bottom:20px;}
+
+/* Countdown Overlay */
+.countdown-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.95);z-index:9999;align-items:center;justify-content:center;flex-direction:column;}
+.countdown-overlay.show{display:flex;}
+.countdown-inner{text-align:center;}
+.countdown-logo{font-family:'Anton',sans-serif;font-size:3rem;color:#fff;letter-spacing:-2px;margin-bottom:20px;}
+.countdown-logo span{color:#ccff00;}
+.countdown-number{font-family:'Anton',sans-serif;font-size:8rem;color:#ccff00;line-height:1;margin:20px 0;text-shadow:0 0 40px rgba(204,255,0,.3);}
+.countdown-tips{font-family:'DM Sans',sans-serif;font-size:16px;color:#ddd;max-width:520px;margin:0 auto;line-height:2.2;text-align:left;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:20px 28px;}
+
+/* Section Sidebar ⑦ */
+.section-sidebar{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:100;display:flex;flex-direction:column;gap:4px;padding:8px 6px;background:rgba(0,0,0,.7);border-radius:8px 0 0 8px;backdrop-filter:blur(6px);}
+.section-sidebar.hidden{display:none;}
+.sidebar-dot{width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;color:#fff;cursor:pointer;transition:all .2s;border:2px solid transparent;}
+.sidebar-dot:hover{transform:scale(1.1);}
+.sidebar-dot.has-unanswered{border-color:#ff4d00;animation:pulse-border 2s infinite;}
+@keyframes pulse-border{0%,100%{border-color:#ff4d00;}50%{border-color:transparent;}}
+@media(max-width:600px){.section-sidebar{display:none;}}
+
+/* Listening lock overlay ③ — only covers questions, not audio panel */
+.listening-q-locked .q-block{position:relative;pointer-events:none;opacity:0.4;}
+.listening-q-locked .q-block::after{content:'🔒';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:24px;opacity:0.5;}
+.listening-q-locked .audio-panel{pointer-events:auto;opacity:1;}
+.listening-q-locked .audio-warning{pointer-events:auto;opacity:1;}
+.listening-q-locked .sub-title{opacity:0.5;}
+.listening-q-locked .directions{opacity:0.5;}
+
+/* Listening confirm dialog */
+.listening-confirm-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);z-index:9998;align-items:center;justify-content:center;}
+.listening-confirm-overlay.show{display:flex;}
+.listening-confirm-box{background:#1a1a2e;border:2px solid #ccff00;border-radius:16px;padding:28px 32px;max-width:480px;width:90%;color:#fff;font-family:'DM Sans',sans-serif;text-align:center;}
+.listening-confirm-box h3{font-size:18px;margin-bottom:16px;color:#ccff00;}
+.listening-confirm-box ul{text-align:left;margin:12px 0 20px;padding-left:20px;font-size:14px;line-height:1.8;color:#ccc;}
+.listening-confirm-box ul li{margin-bottom:4px;}
+.listening-confirm-btns{display:flex;gap:12px;justify-content:center;}
+.listening-confirm-btns button{padding:12px 28px;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:15px;cursor:pointer;transition:all .2s;}
+.btn-start-listening{background:#ccff00;color:#0a0a0a;}
+.btn-start-listening:hover{box-shadow:0 4px 20px rgba(204,255,0,.3);}
+.btn-cancel-listening{background:transparent;border:1.5px solid #666;color:#999;}
+.btn-cancel-listening:hover{border-color:#fff;color:#fff;}
+
+/* Finish Screen */
+.finish-screen{
+  display:none;min-height:100vh;
+  background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 50%,#0a0a0a 100%);
+  padding:40px 20px;color:#fff;
+}
+.finish-screen.show{display:block;}
+.finish-inner{max-width:640px;margin:0 auto;text-align:center;}
+.finish-logo{font-family:'Anton',sans-serif;font-size:clamp(2.5rem,8vw,4rem);color:#fff;letter-spacing:-2px;line-height:.85;margin-bottom:20px;}
+.finish-logo span{color:#ccff00;}
+.finish-badge{
+  display:inline-block;font-family:'DM Sans',sans-serif;font-weight:700;font-size:18px;
+  color:#ccff00;background:rgba(204,255,0,.1);border:2px solid rgba(204,255,0,.3);
+  padding:12px 32px;border-radius:50px;margin-bottom:28px;letter-spacing:1px;
+}
+.finish-card{
+  background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);
+  border-radius:16px;padding:32px 28px;text-align:left;
+  backdrop-filter:blur(4px);margin-bottom:24px;
+}
+.finish-card h2{font-family:'DM Sans',sans-serif;font-size:20px;color:#fff;margin-bottom:8px;}
+.finish-card p{font-family:'DM Sans',sans-serif;font-size:14px;color:#aaa;margin-bottom:20px;}
+.finish-steps{display:flex;flex-direction:column;gap:16px;}
+.finish-step{
+  display:flex;gap:14px;padding:14px 16px;
+  background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);
+  border-radius:10px;
+}
+.step-icon{font-size:24px;flex-shrink:0;padding-top:2px;}
+.step-text{font-family:'DM Sans',sans-serif;font-size:13px;color:#ccc;line-height:1.6;}
+.step-text strong{color:#fff;font-size:14px;}
+.finish-note{
+  margin-top:20px;padding:12px 16px;
+  background:rgba(204,255,0,.06);border:1px solid rgba(204,255,0,.15);
+  border-radius:8px;font-family:'DM Sans',sans-serif;font-size:12px;color:#999;text-align:center;
+}
+.finish-footer{font-family:'JetBrains Mono',monospace;font-size:11px;color:#333;letter-spacing:2px;margin-top:20px;}
+@media(max-width:600px){.finish-card{padding:20px 16px;}.finish-step{flex-direction:column;gap:8px;}}
+</style>
+</head>
+<body>
+<!-- ===== LANDING / INSTRUCTION PAGE ===== -->
+<div class="landing" id="landingPage">
+  <div class="landing-logo">THE <span>COMPASS</span></div>
+
+  <div class="landing-card">
+    <h2>📋 INSTRUCTIONS / 試験の流れ</h2>
+    <ul>
+      <li>試験時間は<strong style="color:#fff;">80分</strong>です。開始ボタンを押すとカウントダウンが始まります。</li>
+      <li>リスニング音声は<strong style="color:#fff;">再生ボタン（▶）を押したとき</strong>にスタートします（1回のみ・約8.5分）。</li>
+      <li style="color:#ff9900;"><strong>⚠ リスニング注意：</strong>音声は約8.5分です。残り10分を切ると最後まで再生できない恐れがあります。お早めに再生してください。</li>
+      <li><strong style="color:#fff;">リスニング問題（Section A）</strong>は、音声の再生中のみ回答可能です。再生前・再生後は回答できません。</li>
+      <li>選択問題は<strong style="color:#fff;">クリック</strong>、記述問題は<strong style="color:#fff;">直接入力</strong>。Error問題は下線部をクリックして誤りを特定。</li>
+      <li>Writing（要約・エッセイ）は提出後に講師が<strong style="color:#fff;">3営業日以内</strong>に添削・採点します。</li>
+      <li>全問回答後に「採点する」ボタンを押してください。</li>
+      <li style="color:#ff4d00;"><strong style="color:#ff4d00;">⚠ 注意：</strong>試験中に他のタブ・アプリへの切り替え等が検出されると<strong style="color:#ff4d00;">警告</strong>が表示されます。警告回数は記録され、講師に報告されます。</li>
+      <li style="color:#ff4d00;"><strong style="color:#ff4d00;">⚠ 受験回数：</strong>この試験は<strong style="color:#ff4d00;">1回のみ</strong>受験可能です。</li>
+    </ul>
+  </div>
+
+  <div class="landing-card">
+    <h2>📝 EXAM OVERVIEW / 出題構成</h2>
+    <table class="overview-tbl">
+      <tr><th>Section</th><th>内容</th><th>問題数</th><th>配点</th><th>形式</th></tr>
+      <tr><td>A. Listening</td><td>Short Conversations + Academic Talk</td><td>10問</td><td>15点</td><td>選択式</td></tr>
+      <tr><td>B. Grammar</td><td>Sentence Completion + Error Identification</td><td>10問</td><td>15点</td><td>選択式 / クリック</td></tr>
+      <tr><td>C. Vocabulary</td><td>Words in Context + Synonyms + Word Formation</td><td>15問</td><td>15点</td><td>選択式 / 記述</td></tr>
+      <tr><td>D. Reading</td><td>Fiction Passage + Non-fiction Passage</td><td>15問</td><td>30点</td><td>選択式 / 記述</td></tr>
+      <tr><td>E. Writing</td><td>Summary (45–55 words) + Opinion Essay (150–200 words)</td><td>2問</td><td>25点</td><td>記述</td></tr>
+      <tr class="total-row"><td>TOTAL</td><td></td><td>52問</td><td>100点</td><td></td></tr>
+    </table>
+  </div>
+
+  <div style="text-align:center;margin:20px 0 10px;">
+    <label style="font-family:'DM Sans',sans-serif;font-size:14px;color:#ccc;cursor:pointer;display:inline-flex;align-items:center;gap:10px;">
+      <input type="checkbox" id="confirmCheck" style="width:20px;height:20px;accent-color:#ccff00;cursor:pointer;">
+      上記の注意事項をすべて確認しました。
+    </label>
+  </div>
+
+  <button class="start-btn-big" id="startBtn" onclick="prelaunchExam()" disabled style="opacity:0.4;cursor:not-allowed;">▶ START EXAM</button>
+
+  <!-- ⑧ Countdown overlay -->
+  <div class="countdown-overlay" id="countdownOverlay">
+    <div class="countdown-inner">
+      <div class="countdown-logo">THE <span>COMPASS</span></div>
+      <div class="countdown-number" id="countdownNum">10</div>
+      <div class="countdown-tips" id="countdownTips"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== EXAM BODY (hidden until start) ===== -->
+<div class="exam-wrap" id="examWrap">
+
+<div class="timer-bar" id="timerBar">
+  <div class="status" id="timerStatus">試験中</div>
+  <div class="clock" id="timerClock">80:00</div>
+</div>
+
+<div class="vol-fixed" id="volFixed">
+  <label id="volIcon" onclick="toggleMute()">🔊</label>
+  <input type="range" id="volSlider" min="0" max="100" value="80" oninput="setVolume(this.value)">
+  <span class="vol-val" id="volVal">80</span>
+</div>
+
+<div class="container">
+
+<div id="exam-body"></div>
+
+<button class="grade-btn" id="gradeBtn" onclick="gradeExam()">📝 採点する / Grade Exam</button>
+
+<div class="score-section" id="scoreSection" style="display:none;">
+  <h2>📊 Results / 診断結果</h2>
+  <table class="score-tbl" id="scoreTbl"></table>
+  <h2 style="margin-top:32px;">🎯 志望校適性判定 / School Matching</h2>
+  <table class="school-tbl" id="schoolTbl"></table>
+  <div id="schoolAdvice" class="info" style="border-left-color:var(--coral);margin-top:16px;"></div>
+</div>
+
+<!-- ⑦ Section Sidebar -->
+<div class="section-sidebar hidden" id="sectionSidebar">
+  <div class="sidebar-dot" style="background:#2d5a87" onclick="scrollToSection('A')" id="sb-A" title="A. Listening">A</div>
+  <div class="sidebar-dot" style="background:#6b4c8a" onclick="scrollToSection('B')" id="sb-B" title="B. Grammar">B</div>
+  <div class="sidebar-dot" style="background:#2a7d5f" onclick="scrollToSection('C')" id="sb-C" title="C. Vocabulary">C</div>
+  <div class="sidebar-dot" style="background:#b8860b" onclick="scrollToSection('D')" id="sb-D" title="D. Reading">D</div>
+  <div class="sidebar-dot" style="background:#c44536" onclick="scrollToSection('E')" id="sb-E" title="E. Writing">E</div>
+</div>
+
+</div><!-- /container -->
+</div><!-- /exam-wrap -->
+
+<!-- Listening confirm dialog -->
+<div class="listening-confirm-overlay" id="listeningConfirmOverlay">
+  <div class="listening-confirm-box">
+    <h3>🎧 リスニングセクションを開始しますか？</h3>
+    <ul>
+      <li>音声は<strong style="color:#ccff00;">1回のみ</strong>再生されます（約8.5分）</li>
+      <li>再生中のみリスニング問題に回答できます</li>
+      <li>再生が終わるとリスニング問題は<strong style="color:#ff4d00;">ロック</strong>されます</li>
+      <li>イヤホン・スピーカーの音量を確認してください</li>
+    </ul>
+    <div class="listening-confirm-btns">
+      <button class="btn-cancel-listening" onclick="cancelListeningStart()">戻る</button>
+      <button class="btn-start-listening" onclick="confirmListeningStart()">▶ リスニングを開始する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FINISH SCREEN ===== -->
+<div class="finish-screen" id="finishScreen">
+  <div class="finish-inner">
+    <div class="finish-logo">THE <span>COMPASS</span></div>
+    <div class="finish-badge">✅ 試験終了 / Exam Complete</div>
+    <div class="finish-card">
+      <h2>お疲れさまでした！</h2>
+      <p>THE COMPASS模試の受験が完了しました。</p>
+      <div class="finish-steps">
+        <div class="finish-step">
+          <div class="step-icon">📊</div>
+          <div class="step-text">
+            <strong>自動採点セクション（A〜D）</strong><br>
+            Listening・Grammar・Vocabulary・Readingの結果は、登録メールアドレスにPDFレポートとして送信されます。
+          </div>
+        </div>
+        <div class="finish-step">
+          <div class="step-icon">📝</div>
+          <div class="step-text">
+            <strong>Writing（Section E）</strong><br>
+            Summary・Essayは講師が<strong>3営業日以内</strong>に添削・採点し、フィードバックをお返しします。
+          </div>
+        </div>
+        <div class="finish-step">
+          <div class="step-icon">📩</div>
+          <div class="step-text">
+            <strong>結果レポートの送付</strong><br>
+            全セクションの詳細レポート（正誤一覧・技能バランスチャート・志望校適性判定）がメールで届きます。
+          </div>
+        </div>
+        <div class="finish-step">
+          <div class="step-icon">💬</div>
+          <div class="step-text">
+            <strong>今後の学習について</strong><br>
+            結果に基づいた学習アドバイスや対策講座のご案内は、担当講師よりご連絡いたします。
+          </div>
+        </div>
+      </div>
+      <div class="finish-note">
+        ご質問がある場合は、TCK Workshopまでお気軽にお問い合わせください。
+      </div>
+    </div>
+    <div class="finish-footer">THE COMPASS — TCK Workshop</div>
+  </div>
+</div>
+
+<script>
+// ================================================================
+// GAS API CONFIG — GitHub Pages ↔ GAS Backend
+// ================================================================
+var GAS_API_URL = 'https://script.google.com/macros/s/AKfycbyqDFsJrIttH_Fcspy/exec'; // ★ GASのデプロイURLに書き換え
+
+// Extract token and userId from URL params (passed from GAS login redirect)
+var urlParams = new URLSearchParams(window.location.search);
+var authToken = urlParams.get('token') || '';
+
+// Fetch helper for GAS API
+function gasGet(params) {
+  var qs = Object.keys(params).map(function(k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
+  return fetch(GAS_API_URL + '?' + qs).then(function(r) { return r.json(); });
+}
+function gasPost(data) {
+  return fetch(GAS_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' }, // GAS requires text/plain for doPost
+    body: JSON.stringify(data)
+  }).then(function(r) { return r.json(); });
+}
+// ================================================================
+// EXAM DATA
+// ================================================================
+const QUESTIONS = [
+  // === SECTION A: LISTENING (15 pts) ===
+  // Part 1 (5 × 1pt)
+  {id:1,sec:'A',part:'Part 1 — Short Conversations',type:'mc',cefr:'b1',pts:1,
+   stem:'What problem does the woman have?',
+   opts:['She lost her boarding pass','Her flight has been rescheduled','She missed the deadline for check-in','Her luggage exceeds the weight limit'],
+   ans:3},
+  {id:2,sec:'A',part:1,type:'mc',cefr:'b1',pts:1,
+   stem:'What does the boy suggest they do about the group project?',
+   opts:['Ask the teacher for an extension','Divide the remaining tasks among the members','Start the project over from scratch','Meet after school to finish it together'],
+   ans:1},
+  {id:3,sec:'A',part:1,type:'mc',cefr:'b2',pts:1,
+   stem:'What can be inferred about the woman\'s attitude?',
+   opts:['She is pleased with the result','She is disappointed but tries to be positive','She is angry at her colleague','She doesn\'t care about the outcome'],
+   ans:1},
+  {id:4,sec:'A',part:1,type:'mc',cefr:'b2',pts:1,
+   stem:'What does the man mean when he says, "That\'s easier said than done"?',
+   opts:['He agrees with the suggestion','He thinks the idea is simple','He believes it is difficult in practice','He has already tried the approach'],
+   ans:2},
+  {id:5,sec:'A',part:1,type:'mc',cefr:'c1',pts:1,
+   stem:'What is the speaker implying about the school\'s new policy?',
+   opts:['It will solve most of the existing problems','It sounds good in theory but may not work','It was created without consulting students','It is exactly what the school needed'],
+   ans:1},
+  // Part 2 (5 × 2pt)
+  {id:6,sec:'A',part:'Part 2 — Longer Passage: Coral Reefs',type:'mc',cefr:'b1',pts:2,
+   stem:'According to the speaker, what role do coral reefs play in the ocean ecosystem?',
+   opts:['They regulate the temperature of ocean water','They provide shelter and food for many marine species','They produce most of the world\'s oxygen','They prevent pollution from reaching the deep ocean'],
+   ans:1,single:true},
+  {id:7,sec:'A',part:2,type:'mc',cefr:'b2',pts:2,
+   stem:'According to the speaker, what happens when water temperatures rise?',
+   opts:['Fish populations increase rapidly','Coral pushes out the algae living inside it','New coral species begin to grow','Marine animals move to land'],
+   ans:1},
+  {id:8,sec:'A',part:2,type:'mc',cefr:'b2',pts:2,
+   stem:'Why does the speaker mention the Great Barrier Reef?',
+   opts:['To give an example of a reef that has recovered fully','To show how large the damage from bleaching can be','To compare it favorably with other reefs','To argue that tourism should be banned there'],
+   ans:1,single:true},
+  {id:9,sec:'A',part:2,type:'mc',cefr:'c1',pts:2,
+   stem:'What does the speaker imply about the future of coral reefs?',
+   opts:['Recovery is certain with current efforts','The situation is serious but not hopeless','Scientists have solved the problem','Nothing can reverse the damage'],
+   ans:1},
+  {id:10,sec:'A',part:2,type:'mc',cefr:'c1',pts:2,
+   stem:'Which best describes the speaker\'s tone throughout the talk?',
+   opts:['Alarmed and pessimistic','Neutral and detached','Concerned but cautiously hopeful','Amused and sarcastic'],
+   ans:2},
+
+  // === SECTION B: GRAMMAR & USAGE (15 pts) ===
+  // Part 1: Sentence Completion (5 × 1pt)
+  {id:11,sec:'B',part:'Part 1 — Sentence Completion',type:'mc',cefr:'b1',pts:1,
+   stem:'By the time she arrived at school, the first class ______ already.',
+   opts:['starts','started','had started','has started'],
+   ans:2},
+  {id:12,sec:'B',part:1,type:'mc',cefr:'b1',pts:1,
+   stem:'The students were told that the field trip ______ if the weather did not improve.',
+   opts:['will cancel','would be canceled','is canceled','has been canceled'],
+   ans:1},
+  {id:13,sec:'B',part:1,type:'mc',cefr:'b2',pts:1,
+   stem:'The book, ______ was written by a Japanese author, has been translated into 30 languages.',
+   opts:['that','which','what','who'],
+   ans:1},
+  {id:14,sec:'B',part:1,type:'mc',cefr:'b2',pts:1,
+   stem:'I wish I ______ a musical instrument when I was younger.',
+   opts:['learn','had learned','have learned','would learn'],
+   ans:1},
+  {id:15,sec:'B',part:1,type:'mc',cefr:'c1',pts:1,
+   stem:'It is essential that every student ______ the safety rules during experiments.',
+   opts:['follows','follow','will follow','followed'],
+   ans:1},
+
+  // Part 2: Error Identification (5 × 2pts) — click the wrong part
+  {id:16,sec:'B',part:'Part 2 — Error Identification (click the incorrect underlined part)',type:'error',cefr:'b1',pts:2,
+   sentence:['The number of students','who is participating','in the science fair','has increased this year.'],
+   errIdx:1,correction:'who are participating',
+   explain:'students (複数) が先行詞 → are が正しい'},
+  {id:17,sec:'B',part:2,type:'error',cefr:'b2',pts:2,
+   sentence:['By the time we arrived,','the flight','has already departed','from the gate.'],
+   errIdx:2,correction:'had already departed',
+   explain:'大過去: arrived より前 → had departed'},
+  {id:18,sec:'B',part:2,type:'error',cefr:'b2',pts:2,
+   sentence:['Despite','to feel','exhausted, the children','kept playing outside.'],
+   errIdx:1,correction:'feeling',
+   explain:'Despite + 動名詞(-ing) / to不定詞は不可'},
+  {id:19,sec:'B',part:2,type:'error',cefr:'c1',pts:2,
+   sentence:['Not only','she finished','the race, but she also','set a new record.'],
+   errIdx:1,correction:'did she finish',
+   explain:'Not only + 倒置 (did + S + V原形)'},
+  {id:20,sec:'B',part:2,type:'error',cefr:'c1',pts:2,
+   sentence:['If I','would have known','about the exam, I','would have studied harder.'],
+   errIdx:1,correction:'had known',
+   explain:'仮定法過去完了 If節 = had + p.p.'},
+
+  // === SECTION C: VOCABULARY (15 pts) ===
+  // Part 1: Words in Context (5 × 1pt)
+  {id:21,sec:'C',part:'Part 1 — Words in Context',type:'mc',cefr:'b1',pts:1,
+   stem:'The school decided to ______ its dress code after receiving complaints from parents.',
+   opts:['revise','abolish','reject','restore'],
+   ans:0},
+  {id:22,sec:'C',part:1,type:'mc',cefr:'b1',pts:1,
+   stem:'The documentary ______ a number of important issues that people tend to overlook.',
+   opts:['addresses','accesses','assesses','assumes'],
+   ans:0},
+  {id:23,sec:'C',part:1,type:'mc',cefr:'b2',pts:1,
+   stem:'The government decided to ______ the old law and replace it with a modern one.',
+   opts:['reinforce','abolish','establish','promote'],
+   ans:1},
+  {id:24,sec:'C',part:1,type:'mc',cefr:'b2',pts:1,
+   stem:'A ______ in the computer system caused problems for the entire school.',
+   opts:['glitch','blackout','break','leak'],
+   ans:0},
+  {id:25,sec:'C',part:1,type:'mc',cefr:'c1',pts:1,
+   stem:'The scientist\'s groundbreaking theory was initially met with ______ by the academic community.',
+   opts:['enthusiasm','skepticism','ignorance','sympathy'],
+   ans:1},
+
+  // Part 2: Synonyms (5 × 1pt)
+  {id:26,sec:'C',part:'Part 2 — Synonyms (closest meaning)',type:'mc',cefr:'b1',pts:1,
+   stem:'The company had to <u>withdraw</u> the product after customers reported safety concerns.',
+   opts:['advertise','recall','launch','improve'],
+   ans:1},
+  {id:27,sec:'C',part:2,type:'mc',cefr:'b2',pts:1,
+   stem:'Her <u>candid</u> response surprised everyone at the meeting.',
+   opts:['rehearsed','honest','unclear','cautious'],
+   ans:1},
+  {id:28,sec:'C',part:2,type:'mc',cefr:'b2',pts:1,
+   stem:'The island\'s ecosystem is extremely <u>fragile</u> and must be carefully protected.',
+   opts:['resilient','stable','delicate','isolated'],
+   ans:2},
+  {id:29,sec:'C',part:2,type:'mc',cefr:'c1',pts:1,
+   stem:'The detective tried to <u>unravel</u> the mystery surrounding the missing artifact.',
+   opts:['complicate','solve','create','ignore'],
+   ans:1},
+  {id:30,sec:'C',part:2,type:'mc',cefr:'c1',pts:1,
+   stem:'The teacher\'s <u>meticulous</u> preparation ensured the lesson went smoothly.',
+   opts:['hasty','thorough','casual','irregular'],
+   ans:1},
+
+  // Part 3: Word Formation (5 × 1pt) — type answer
+  {id:31,sec:'C',part:'Part 3 — Word Formation (type the correct form)',type:'fill',cefr:'b1',pts:1,
+   stem:'The ______ of plastic bags has been banned in several countries. [USE]',
+   accepts:['usage','use'],preferred:'usage'},
+  {id:32,sec:'C',part:3,type:'fill',cefr:'b1',pts:1,
+   stem:'Switching to renewable energy is ______ for reducing carbon emissions. [ESSENCE]',
+   accepts:['essential'],preferred:'essential'},
+  {id:33,sec:'C',part:3,type:'fill',cefr:'b2',pts:1,
+   stem:'The ______ of the new hospital will take about two years. [CONSTRUCT]',
+   accepts:['construction'],preferred:'construction'},
+  {id:34,sec:'C',part:3,type:'fill',cefr:'b2',pts:1,
+   stem:'Many parents were ______ with the school\'s sudden decision and signed a petition against it. [SATISFY]',
+   accepts:['dissatisfied','unsatisfied'],preferred:'dissatisfied'},
+  {id:35,sec:'C',part:3,type:'fill',cefr:'c1',pts:1,
+   stem:'The children showed remarkable ______ by solving the puzzle entirely on their own. [RESOURCE]',
+   accepts:['resourcefulness'],preferred:'resourcefulness'},
+
+  // === SECTION D: READING (30 pts) ===
+  // Passage 1 — Fiction
+  {id:36,sec:'D',part:'Passage 1 — Fiction',type:'mc',cefr:'b1',pts:2,passage:'fiction',
+   stem:'How does Lena feel at the beginning of the story?',
+   opts:['Excited about exploring a new town','Disconnected and unhappy about the move','Angry at her mother for moving','Nervous about starting at a new school'],
+   ans:1},
+  {id:37,sec:'D',part:1,type:'mc',cefr:'b1',pts:2,passage:'fiction',
+   stem:'What do the jasmine garden, corner shop, and friends represent to Lena?',
+   opts:['Things she needs to forget in order to move on','A sense of belonging that she has lost','Problems she wanted to escape from','Memories that she exaggerates because she is sad'],
+   ans:1,single:true},
+  {id:38,sec:'D',part:1,type:'mc',cefr:'b2',pts:2,passage:'fiction',
+   stem:'The comparison to "unpacking a suitcase" suggests that —',
+   opts:['Lena has very few belongings to unpack','Her mother understands how difficult the move is','Adjusting to a new place is not as simple as her mother implies','Lena prefers to organize before making friends'],
+   ans:2,single:true},
+  {id:39,sec:'D',part:1,type:'mc',cefr:'b2',pts:2,passage:'fiction',
+   stem:'Why does the girl on the bus mention her violin?',
+   opts:['To show off her musical talent','To suggest that finding a passion can help you cope with change','To convince Lena to join a music class','To warn Lena that the town will never feel like home'],
+   ans:1,single:true},
+  {id:40,sec:'D',part:1,type:'mc',cefr:'c1',pts:2,passage:'fiction',
+   stem:'"Not quite hope but perhaps its quieter cousin: curiosity" — what does this mean?',
+   opts:['Lena now feels fully confident about her new life','Lena is beginning to feel a subtle, positive interest in what lies ahead','Lena realizes she has nothing in common with the girl','Lena decides to pretend to be happy'],
+   ans:1,single:true},
+  {id:41,sec:'D',part:1,type:'mc',cefr:'b2',pts:2,passage:'fiction',
+   stem:'What genre does this passage belong to?',
+   opts:['Science fiction','Historical non-fiction','Realistic fiction','Fantasy'],
+   ans:2},
+  {id:42,sec:'D',part:1,type:'mc',cefr:'c1',pts:2,passage:'fiction',
+   stem:'Which word best describes the overall tone of this passage?',
+   opts:['Humorous','Bittersweet','Frightening','Indifferent'],
+   ans:1},
+
+  // Passage 2 — Non-fiction
+  {id:43,sec:'D',part:'Passage 2 — Non-fiction',type:'mc',cefr:'b1',pts:2,passage:'nonfic',
+   stem:'What is the author\'s main argument in this passage?',
+   opts:['Schools should teach students about brain science','Getting enough sleep is crucial for academic success','Homework should be reduced for younger students','Medical research should focus on children\'s health'],
+   ans:1,single:true},
+  {id:44,sec:'D',part:2,type:'mc',cefr:'b1',pts:2,passage:'nonfic',
+   stem:'According to the passage, what is the gap between experts\' recommendation and students\' actual behavior?',
+   opts:['Experts say 9–11 hours, but many students sleep fewer than 7','Experts say 7–9 hours, but most students sleep only 5','Experts say 11–13 hours, but students sleep 9–10','Experts say 8 hours, but students prefer to stay up late'],
+   ans:0,single:true},
+  {id:45,sec:'D',part:2,type:'mc',cefr:'b2',pts:2,passage:'nonfic',
+   stem:'The phrase "memory consolidation" in paragraph 1 refers to —',
+   opts:['Forgetting unimportant information during sleep','The brain\'s process of strengthening what was learned','A medical condition caused by lack of sleep','A type of exam given at Harvard Medical School'],
+   ans:1,single:true},
+  {id:46,sec:'D',part:2,type:'mc',cefr:'b2',pts:2,passage:'nonfic',
+   stem:'Why might "pulling an all-nighter" actually hurt exam performance?',
+   opts:['Students forget to eat breakfast the next morning','Sleep deprivation weakens the part of the brain used for thinking','Teachers give harder tests in the morning','Students cannot bring notes into the exam'],
+   ans:1,single:true},
+  {id:47,sec:'D',part:2,type:'mc',cefr:'b2',pts:2,passage:'nonfic',
+   stem:'What does the word "outweigh" in paragraph 4 mean?',
+   opts:['To be heavier in physical weight','To be more important or valuable than','To become less significant over time','To cause more problems than expected'],
+   ans:1,single:true},
+  {id:48,sec:'D',part:2,type:'mc',cefr:'c1',pts:2,passage:'nonfic',
+   stem:'What is the purpose of the final sentence ("We would never ask students to run a marathon...")?',
+   opts:['To compare athletic training with academic study using analogy','To suggest that running is more important than studying','To prove that sleep research is unreliable','To argue that schools should add more PE classes'],
+   ans:0,single:true},
+  {id:49,sec:'D',part:2,type:'mc',cefr:'c1',pts:2,passage:'nonfic',
+   stem:'What is the purpose of paragraph 4 in relation to the rest of the passage?',
+   opts:['To prove that later start times are impossible to implement','To present an opposing viewpoint and respond to it','To introduce a completely different topic','To summarize all the previous paragraphs'],
+   ans:1,single:true},
+  {id:50,sec:'D',part:2,type:'fill',cefr:'b2',pts:2,passage:'nonfic',
+   stem:'Name TWO reasons why many students are not getting enough sleep, according to the passage. Write in a complete sentence.',
+   accepts:null, // AI-scored short answer
+   keywords:['homework','extracurricular','screen time','activities'],minKeywords:2},
+];
+
+// Passages
+const FICTION_PASSAGE = `<p>Lena pressed her forehead against the cold window of the bus. Outside, the streets of her new town slid by like a film she hadn't asked to watch. Everything was gray — the sky, the pavement, even the faces of people waiting at the crosswalk.</p>
+<p>"You'll love it once you settle in," her mother had said, as if settling in were something you could do the way you unpacked a suitcase — mechanically, one item at a time. But Lena knew better. She had left behind more than a house. She had left behind the jasmine-scented garden where she used to read until the sun set, the corner shop where Mr. Nakamura saved her favorite melon bread, and the laughter of friends who understood her without needing words.</p>
+<p>The bus lurched to a stop, and a girl about Lena's age climbed on, carrying a violin case. She sat across the aisle and, after a moment, caught Lena's eye. "First day?" she asked, as if it were written on Lena's face. Lena nodded.</p>
+<p>"I moved here two years ago from Singapore," the girl said. "I cried every day for a month. Then one day I stopped — not because things got better, but because I found something worth getting up for." She tapped the violin case and smiled.</p>
+<p>Lena looked at the girl — at the easy way she balanced between the memory of somewhere else and the reality of here — and felt, for the first time since the move, something that was not quite hope but was perhaps its quieter cousin: curiosity.</p>`;
+
+const NONFIC_PASSAGE = `<p>Sleep plays a far more important role in learning than most students realize. Research at Harvard Medical School found that students who slept well after studying performed 20 to 30 percent better on tests than those who stayed awake. During sleep, the brain replays and strengthens the connections formed during the day — a process called <span class="bold-w">memory consolidation</span>.</p>
+<p>Sleep deprivation also impairs the <span class="bold-w">prefrontal cortex</span>, the part of the brain responsible for concentration, decision-making, and creative problem-solving. This means that staying up all night before an exam — a practice known as "pulling an all-nighter" — may actually lead to worse performance, not better.</p>
+<p>Experts recommend 9 to 11 hours of sleep per night for school-age children. However, a growing number of students report sleeping fewer than 7 hours due to homework, extracurricular activities, and screen time. Some schools have responded by pushing back morning start times, and early results suggest that even a 30-minute delay can improve both grades and attendance.</p>
+<p>Critics argue that later start times create logistical problems for parents and disrupt bus schedules. Nevertheless, advocates insist that the academic and health benefits far <span class="bold-w">outweigh</span> the inconveniences. As one researcher noted, "We would never ask students to run a marathon without proper nutrition. Why do we ask them to learn without proper sleep?"</p>`;
+
+// School weights
+const SCHOOLS = [
+  {name:'渋幕',L:.20,G:.15,V:.15,R:.25,W:.25,target:80},
+  {name:'渋渋',L:0,G:.15,V:.15,R:.40,W:.30,target:75},
+  {name:'洗足A',L:0,G:.30,V:.35,R:.35,W:0,target:65},
+  {name:'頌栄',L:0,G:.15,V:.20,R:.30,W:.35,target:65},
+  {name:'広尾AG',L:0,G:.15,V:.15,R:.35,W:.35,target:60},
+  {name:'三田国際IC',L:.25,G:.05,V:.10,R:.30,W:.30,target:55},
+  {name:'かえつHonors',L:0,G:.20,V:.20,R:.25,W:.35,target:55},
+  {name:'サレジアン世田谷',L:0,G:.05,V:.10,R:.15,W:.70,target:50},
+  {name:'サレジアン赤羽',L:0,G:.10,V:.15,R:.25,W:.50,target:45},
+];
+
+const SECTIONS = {A:{label:'Listening Comprehension',color:'#2d5a87',max:15},B:{label:'Grammar & Usage',color:'#6b4c8a',max:15},C:{label:'Vocabulary',color:'#2a7d5f',max:15},D:{label:'Reading Comprehension',color:'#b8860b',max:30},E:{label:'Writing',color:'#c44536',max:25}};
+
+// ================================================================
+// STATE
+// ================================================================
+let answers = {};
+let writingScores = {summary:null,essay:null};
+let selectedTopic = null;
+let graded = false;
+
+// ================================================================
+// RENDER
+// ================================================================
+function render() {
+  const body = document.getElementById('exam-body');
+  let html = '';
+  let currentSec = '', currentPart = '';
+  let passageShown = {};
+
+  for (const q of QUESTIONS) {
+    // Section header
+    if (q.sec !== currentSec) {
+      if (currentSec) html += '</div>';
+      currentSec = q.sec;
+      currentPart = '';
+      const s = SECTIONS[q.sec];
+      html += `<div class="section"><div class="sec-head"><div class="badge" style="background:${s.color}">Section ${q.sec}</div><div class="sec-title">${s.label}</div><div class="sec-pts">/ ${s.max} pts</div></div>`;
+      if (q.sec === 'A') html += `
+        <div class="audio-panel" id="audioPanel">
+          <button class="play-btn" id="playBtn" title="クリックしてリスニングを開始">▶</button>
+          <div class="audio-info">
+            <div class="track-label" id="trackLabel">Listening Audio — Multi-voice Recording</div>
+            <div class="track-title" id="trackTitle">▶ ボタンを押してリスニングを開始してください</div>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+          </div>
+        </div>
+        <div class="audio-warning" id="audioWarning">⚠ 音声は1回のみ再生されます（約8.5分）。準備ができたら▶ボタンを押してください。</div>
+        <audio id="listeningAudio" preload="auto">
+          <source src="audio/compass_listening.mp3" type="audio/mpeg">
+        </audio>`;
+    }
+    // Part header
+    const partKey = typeof q.part === 'string' ? q.part : null;
+    if (partKey && partKey !== currentPart) {
+      currentPart = partKey;
+      html += `<div class="sub-title">${partKey}</div>`;
+      if (q.sec === 'A' && partKey.includes('Part 1')) html += `<div class="directions">Listen to each short conversation, then choose the best answer for each question.</div>`;
+      if (q.sec === 'A' && partKey.includes('Part 2')) html += `<div class="directions">Listen to the following academic talk, then answer the questions below.</div>`;
+      if (q.sec === 'B' && partKey.includes('Sentence')) html += `<div class="directions">Choose the word or phrase that best completes each sentence.</div>`;
+      if (q.sec === 'B' && partKey.includes('Error')) html += `<div class="directions">Each sentence below has one error. Click the underlined part that contains the error.</div>`;
+      if (q.sec === 'C' && partKey.includes('Words in Context')) html += `<div class="directions">Choose the word that best fits in the blank.</div>`;
+      if (q.sec === 'C' && partKey.includes('Synonyms')) html += `<div class="directions">Choose the word closest in meaning to the underlined word.</div>`;
+      if (q.sec === 'C' && partKey.includes('Word Formation')) html += `<div class="directions">Write the correct form of the word given in brackets.</div>`;
+      if (q.sec === 'D' && partKey.includes('Passage 1')) html += `<div class="directions">Read the passage on the left, then answer the questions.</div>`;
+      if (q.sec === 'D' && partKey.includes('Passage 2')) html += `<div class="directions">Read the passage on the left, then answer the questions.</div>`;
+    }
+    // Passage — Reading uses split-pane sticky layout
+    if (q.passage === 'fiction' && !passageShown.fiction) {
+      html += `<div class="reading-split" id="readingSplit-fiction">`;
+      html += `<div class="reading-passage-sticky"><div class="passage-title">📖 Passage 1 — Fiction</div>${FICTION_PASSAGE}</div>`;
+      html += `<div class="reading-questions" id="readingQs-fiction">`;
+      passageShown.fiction = true;
+    }
+    if (q.passage === 'nonfic' && !passageShown.nonfic) {
+      // Close fiction questions div and split if open
+      if (passageShown.fiction && document.getElementById ? true : true) {
+        html += `</div></div>`; // close reading-questions + reading-split for fiction
+      }
+      html += `<div class="reading-split" id="readingSplit-nonfic">`;
+      html += `<div class="reading-passage-sticky"><div class="passage-title">📖 Passage 2 — Non-fiction: Sleep & Learning</div>${NONFIC_PASSAGE}</div>`;
+      html += `<div class="reading-questions" id="readingQs-nonfic">`;
+      passageShown.nonfic = true;
+    }
+    // Question
+    html += renderQuestion(q);
+  }
+  // Close reading split-pane if it was open
+  if (passageShown.nonfic) {
+    html += '</div></div>'; // close reading-questions + reading-split for nonfic
+  }
+  html += '</div>'; // close last section
+
+  // Section E: Writing
+  html += renderWritingSection();
+
+  body.innerHTML = html;
+  attachHandlers();
+}
+
+function renderQuestion(q) {
+  let h = `<div class="q-block" id="qblock-${q.id}">`;
+  h += `<div class="q-head"><span class="q-num">${q.id}.</span><span class="pts-tag">${q.pts}pt${q.pts>1?'s':''}</span></div>`;
+
+  if (q.type === 'mc') {
+    h += `<div class="q-stem">${q.stem}</div>`;
+    h += `<div class="mc-options${q.single?' single':''}">`;
+    const labels = ['A','B','C','D'];
+    q.opts.forEach((o,i) => {
+      h += `<div class="mc-opt" data-q="${q.id}" data-i="${i}"><span class="mc-label">${labels[i]}.</span>${o}</div>`;
+    });
+    h += '</div>';
+  } else if (q.type === 'error') {
+    h += `<div class="error-sent">`;
+    q.sentence.forEach((part,i) => {
+      h += `<span class="err-part" data-q="${q.id}" data-i="${i}">${part}</span> `;
+    });
+    h += `</div><div class="err-note">⬆ Click the part that contains an error</div>`;
+  } else if (q.type === 'fill') {
+    h += `<div class="q-stem">${q.stem}</div>`;
+    if (q.keywords) {
+      // Short answer (Q50)
+      h += `<textarea class="essay-area" id="fill-${q.id}" style="min-height:80px;max-width:100%;" placeholder="Write your answer here..."></textarea>`;
+    } else {
+      h += `<input type="text" class="text-input" id="fill-${q.id}" placeholder="Type your answer..." autocomplete="off">`;
+    }
+  }
+
+  h += `<div class="feedback" id="fb-${q.id}" style="display:none;"></div>`;
+  h += '</div>';
+  return h;
+}
+
+function renderWritingSection() {
+  let h = `<div class="section"><div class="sec-head"><div class="badge" style="background:#c44536">Section E</div><div class="sec-title">Writing</div><div class="sec-pts">/ 25 pts</div></div>`;
+
+  // Summary — with sticky passage reference
+  h += `<div class="sub-title">Part 1 — Summary Writing (10 pts)</div>`;
+  h += `<div class="directions">Reread Passage 2 (Non-fiction about sleep) and write a summary in 45–55 words. Include the main idea and key points. Do NOT copy sentences from the passage.</div>`;
+  h += `<div class="reading-split">`;
+  h += `<div class="reading-passage-sticky" style="flex:0 0 44%;font-size:13.5px;"><div class="passage-title">📖 Reference: Passage 2 — Non-fiction</div>${NONFIC_PASSAGE}</div>`;
+  h += `<div class="reading-questions">`;
+  h += `<textarea class="essay-area" id="summaryText" placeholder="Write your summary here..." style="min-height:200px;"></textarea>`;
+  h += `<div class="word-count" id="summaryWc">0 words (target: 45–55)</div>`;
+  h += `<div class="ai-loading" id="loadingSummary"><div class="spinner"></div>採点中です...</div>`;
+  h += `<div class="ai-feedback" id="feedbackSummary"></div>`;
+  h += `</div></div>`;
+
+  // Essay
+  h += `<div class="sub-title" style="margin-top:28px;">Part 2 — Opinion Essay (15 pts)</div>`;
+  h += `<div class="directions">Choose ONE topic below by clicking on it, then write 150–200 words. Include an introduction, body, and conclusion.</div>`;
+  h += `<div class="topic-selector" id="topicSelector">`;
+  h += `<div class="topic-card" id="topicA" onclick="selectTopic('A')">
+    <div class="topic-label"><span class="check"></span>Topic A</div>
+    <div class="topic-text">"Students learn more from their classmates than from their teachers." Do you agree or disagree?</div>
+  </div>`;
+  h += `<div class="topic-card" id="topicB" onclick="selectTopic('B')">
+    <div class="topic-label"><span class="check"></span>Topic B</div>
+    <div class="topic-text">Some people believe children should grow up in one country. Others say living in multiple countries is beneficial. Which do you support?</div>
+  </div>`;
+  h += `</div>`;
+  h += `<textarea class="essay-area" id="essayText" placeholder="トピックを選択してからエッセイを書いてください / Select a topic above first..." style="min-height:260px;" disabled></textarea>`;
+  h += `<div class="word-count" id="essayWc">0 words (target: 150–200)</div>`;
+  h += `<div class="ai-loading" id="loadingEssay"><div class="spinner"></div>採点中です...</div>`;
+  h += `<div class="ai-feedback" id="feedbackEssay"></div>`;
+
+  h += '</div>';
+  return h;
+}
+
+// ================================================================
+// TOPIC SELECTION
+function selectTopic(topic) {
+  selectedTopic = topic;
+  document.getElementById('topicA').classList.toggle('selected', topic === 'A');
+  document.getElementById('topicB').classList.toggle('selected', topic === 'B');
+  document.getElementById('topicA').querySelector('.check').textContent = topic === 'A' ? '✓' : '';
+  document.getElementById('topicB').querySelector('.check').textContent = topic === 'B' ? '✓' : '';
+  const textarea = document.getElementById('essayText');
+  textarea.disabled = false;
+  textarea.placeholder = topic === 'A'
+    ? 'Topic A: "Students learn more from their classmates than from their teachers." — Write your essay here...'
+    : 'Topic B: Growing up in one country vs. multiple countries — Write your essay here...';
+  textarea.focus();
+}
+
+// EVENT HANDLERS
+// ================================================================
+function attachHandlers() {
+  // MC
+  document.querySelectorAll('.mc-opt').forEach(el => {
+    el.addEventListener('click', function() {
+      if (graded) return;
+      const qid = +this.dataset.q;
+      document.querySelectorAll(`.mc-opt[data-q="${qid}"]`).forEach(o => o.classList.remove('selected'));
+      this.classList.add('selected');
+      answers[qid] = +this.dataset.i;
+      document.getElementById(`qblock-${qid}`).classList.add('answered');
+    });
+  });
+  // Error ID
+  document.querySelectorAll('.err-part').forEach(el => {
+    el.addEventListener('click', function() {
+      if (graded) return;
+      const qid = +this.dataset.q;
+      document.querySelectorAll(`.err-part[data-q="${qid}"]`).forEach(o => o.classList.remove('selected'));
+      this.classList.add('selected');
+      answers[qid] = +this.dataset.i;
+      document.getElementById(`qblock-${qid}`).classList.add('answered');
+    });
+  });
+  // Fill-in
+  document.querySelectorAll('.text-input, textarea.essay-area[id^="fill-"]').forEach(el => {
+    el.addEventListener('input', function() {
+      const qid = +this.id.replace('fill-','');
+      answers[qid] = this.value.trim();
+      if (this.value.trim()) document.getElementById(`qblock-${qid}`).classList.add('answered');
+    });
+  });
+  // Word counters
+  const summaryEl = document.getElementById('summaryText');
+  const essayEl = document.getElementById('essayText');
+  if (summaryEl) summaryEl.addEventListener('input', () => {
+    const wc = summaryEl.value.trim().split(/\s+/).filter(w=>w).length;
+    document.getElementById('summaryWc').textContent = `${wc} words (target: 45–55)`;
+  });
+  if (essayEl) essayEl.addEventListener('input', () => {
+    const wc = essayEl.value.trim().split(/\s+/).filter(w=>w).length;
+    document.getElementById('essayWc').textContent = `${wc} words (target: 150–200)`;
+  });
+}
+
+// ================================================================
+// WRITING SCORING (APIキーなし版 — 講師が後日採点)
+// ================================================================
+async function scoreWritingThenFinish(sectionScores, sectionMax) {
+  const summaryText = (document.getElementById('summaryText')?.value || '').trim();
+  const essayText = (document.getElementById('essayText')?.value || '').trim();
+  const summaryWc = summaryText ? summaryText.split(/\s+/).filter(w=>w).length : 0;
+  const essayWc = essayText ? essayText.split(/\s+/).filter(w=>w).length : 0;
+
+  // Summary feedback
+  const fbSummary = document.getElementById('feedbackSummary');
+  if (summaryWc >= 5) {
+    fbSummary.innerHTML = `<div style="padding:12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;">
+      <strong>📝 Summary 受領済み</strong>（${summaryWc} words）<br>
+      <span style="color:var(--muted);font-size:13px;">講師が後日採点してフィードバックをお返しします。</span>
+    </div>`;
+    fbSummary.classList.add('show');
+  }
+
+  // Essay feedback
+  const fbEssay = document.getElementById('feedbackEssay');
+  if (essayWc >= 5) {
+    const topicLabel = selectedTopic ? `Topic ${selectedTopic}` : '未選択';
+    fbEssay.innerHTML = `<div style="padding:12px;background:#f0f9ff;border:1px solid #bae6fd;border-radius:6px;">
+      <strong>📝 Essay 受領済み</strong>（${topicLabel} / ${essayWc} words）<br>
+      <span style="color:var(--muted);font-size:13px;">講師が後日採点してフィードバックをお返しします。</span>
+    </div>`;
+    fbEssay.classList.add('show');
+  }
+
+  // Writing score = 0 for now (manual grading later)
+  sectionScores.E = 0;
+
+  displayResults(sectionScores, sectionMax);
+
+  // === 回答データをGASに送信（PDF生成 + メール通知） ===
+  try {
+    const examData = collectExamData(sectionScores, sectionMax);
+    gasPost({ action: 'submitResults', examData: examData })
+      .then(function(res) {
+        if (res && res.success) {
+          console.log('回答データ送信完了: ' + res.pdfUrl);
+        }
+        showFinishScreen();
+      })
+      .catch(function(err) {
+        console.error('回答データ送信エラー:', err);
+        showFinishScreen();
+      });
+  } catch(e) {
+    console.error('データ収集エラー:', e);
+    showFinishScreen();
+  }
+}
+
+// ================================================================
+// FINISH SCREEN TRANSITION
+// ================================================================
+function showFinishScreen() {
+  // Hide exam
+  document.getElementById('examWrap').classList.remove('show');
+  document.getElementById('examWrap').style.display = 'none';
+  // Hide timer bar
+  document.getElementById('timerBar').style.display = 'none';
+  // Show finish screen
+  document.getElementById('finishScreen').classList.add('show');
+  window.scrollTo(0, 0);
+}
+
+// ================================================================
+// COLLECT EXAM DATA (for PDF generation)
+// ================================================================
+function collectExamData(sectionScores, sectionMax) {
+  const data = {
+    timestamp: new Date().toISOString(),
+    userId: currentUserId, // ⑫ pass userId to backend
+    violationCount: violationCount, // ⑪
+    scores: sectionScores,
+    maxScores: sectionMax,
+    totalNoWriting: (sectionScores.A||0)+(sectionScores.B||0)+(sectionScores.C||0)+(sectionScores.D||0),
+    answers: {},
+    writing: {
+      summary: {
+        text: (document.getElementById('summaryText')?.value || '').trim(),
+        wordCount: 0
+      },
+      essay: {
+        text: (document.getElementById('essayText')?.value || '').trim(),
+        topic: selectedTopic || 'none',
+        wordCount: 0
+      }
+    }
+  };
+
+  // Word counts
+  if (data.writing.summary.text) {
+    data.writing.summary.wordCount = data.writing.summary.text.split(/\s+/).filter(w=>w).length;
+  }
+  if (data.writing.essay.text) {
+    data.writing.essay.wordCount = data.writing.essay.text.split(/\s+/).filter(w=>w).length;
+  }
+
+  // Collect each question answer
+  for (const q of QUESTIONS) {
+    const userAns = answers[q.id];
+    const entry = {
+      id: q.id,
+      section: q.sec,
+      type: q.type,
+      pts: q.pts,
+      userAnswer: null,
+      correct: false,
+      earnedPts: 0
+    };
+
+    if (q.type === 'mc') {
+      const labels = ['A','B','C','D'];
+      entry.stem = q.stem.replace(/<[^>]*>/g, '');
+      entry.correctAnswer = labels[q.ans] + '. ' + q.opts[q.ans];
+      if (userAns !== undefined) {
+        entry.userAnswer = labels[userAns] + '. ' + q.opts[userAns];
+        entry.correct = userAns === q.ans;
+      }
+    } else if (q.type === 'error') {
+      entry.stem = q.sentence.join(' / ');
+      entry.correctAnswer = q.correction + ' — ' + q.explain;
+      if (userAns !== undefined) {
+        entry.userAnswer = 'Part ' + (userAns + 1) + ': ' + q.sentence[userAns];
+        entry.correct = userAns === q.errIdx;
+      }
+    } else if (q.type === 'fill') {
+      entry.stem = q.stem.replace(/<[^>]*>/g, '');
+      entry.correctAnswer = q.preferred || '(記述式)';
+      entry.userAnswer = userAns || '';
+      if (q.accepts) {
+        entry.correct = q.accepts.map(a => a.toLowerCase()).includes((userAns||'').toLowerCase().trim());
+      } else if (q.keywords) {
+        const val = (userAns || '').toLowerCase();
+        let found = 0;
+        for (const kw of q.keywords) { if (val.includes(kw.toLowerCase())) found++; }
+        entry.correct = found >= q.minKeywords;
+        entry.earnedPts = found >= q.minKeywords ? q.pts : (found >= 1 ? 1 : 0);
+      }
+    }
+
+    if (entry.correct && !q.keywords) entry.earnedPts = q.pts;
+    data.answers[q.id] = entry;
+  }
+
+  return data;
+}
+
+// ================================================================
+// GRADING — with confirmation + finish screen
+// ================================================================
+let forceFinish = false; // true when timer hits 0
+
+function gradeExam() {
+  // Confirmation dialog (skip if forced by timer)
+  if (!forceFinish) {
+    const remaining = Math.floor(totalSeconds / 60) + '分' + (totalSeconds % 60) + '秒';
+    if (!confirm('本当に試験を終了しますか？\n\n残り時間: ' + remaining + '\n\n「OK」を押すと採点が始まり、試験は終了します。')) {
+      return;
+    }
+  }
+
+  graded = true;
+
+  // Stop all timers
+  if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+  if (previewCountdown) { clearInterval(previewCountdown); previewCountdown = null; }
+
+  // Stop audio if playing
+  const audio = document.getElementById('listeningAudio');
+  if (audio) { audio.pause(); }
+
+  // Hide volume widget
+  document.getElementById('volFixed').classList.remove('show');
+
+  // Update timer bar
+  document.getElementById('timerStatus').textContent = '✅ 試験終了';
+  document.getElementById('timerStatus').classList.remove('listening-active');
+
+  const gradeBtn = document.getElementById('gradeBtn');
+  gradeBtn.disabled = true;
+  gradeBtn.textContent = '⏳ 採点中...';
+
+  let sectionScores = {A:0,B:0,C:0,D:0,E:0};
+  let sectionMax = {A:15,B:15,C:15,D:30,E:25};
+
+  for (const q of QUESTIONS) {
+    const block = document.getElementById(`qblock-${q.id}`);
+    const fb = document.getElementById(`fb-${q.id}`);
+    const userAns = answers[q.id];
+    let correct = false;
+
+    if (q.type === 'mc') {
+      correct = userAns === q.ans;
+      document.querySelectorAll(`.mc-opt[data-q="${q.id}"]`).forEach(el => {
+        const i = +el.dataset.i;
+        if (i === q.ans) el.classList.add('correct-answer');
+        if (i === userAns && !correct) el.classList.add('wrong-answer');
+      });
+    } else if (q.type === 'error') {
+      correct = userAns === q.errIdx;
+      document.querySelectorAll(`.err-part[data-q="${q.id}"]`).forEach(el => {
+        const i = +el.dataset.i;
+        if (i === q.errIdx) el.classList.add('correct-answer');
+        if (i === userAns && !correct) el.classList.add('wrong-answer');
+      });
+      fb.innerHTML = `✅ ${q.correction} — ${q.explain}`;
+      fb.className = 'feedback correct';
+      fb.style.display = 'block';
+    } else if (q.type === 'fill') {
+      if (q.accepts) {
+        const val = (userAns || '').toLowerCase().trim();
+        correct = q.accepts.map(a => a.toLowerCase()).includes(val);
+        const inputEl = document.getElementById(`fill-${q.id}`);
+        if (inputEl) inputEl.classList.add(correct ? 'correct' : 'wrong');
+        fb.innerHTML = correct ? `✅ Correct!` : `❌ Answer: <strong>${q.preferred}</strong>`;
+      } else if (q.keywords) {
+        const val = (userAns || '').toLowerCase();
+        let found = 0;
+        for (const kw of q.keywords) {
+          if (val.includes(kw.toLowerCase())) found++;
+        }
+        const score = found >= q.minKeywords ? q.pts : (found >= 1 ? 1 : 0);
+        correct = score === q.pts;
+        sectionScores[q.sec] += score;
+        fb.innerHTML = found >= q.minKeywords
+          ? `✅ ${score}/${q.pts} pts — Key reasons identified`
+          : `⚠️ ${score}/${q.pts} pts — Include: homework, extracurricular activities, screen time (any 2)`;
+        fb.className = `feedback ${correct ? 'correct' : 'wrong'}`;
+        fb.style.display = 'block';
+        block.classList.add(correct ? 'correct' : 'wrong');
+        continue;
+      }
+    }
+
+    if (q.type !== 'fill' || q.accepts) {
+      if (correct) sectionScores[q.sec] += q.pts;
+    }
+
+    if (fb && q.type !== 'error') {
+      if (userAns === undefined || userAns === '') {
+        fb.innerHTML = '⬜ Not answered';
+        fb.className = 'feedback wrong';
+      } else {
+        fb.innerHTML = correct ? `✅ Correct! +${q.pts}pt${q.pts>1?'s':''}` : `❌ Incorrect`;
+        fb.className = `feedback ${correct ? 'correct' : 'wrong'}`;
+      }
+      fb.style.display = 'block';
+    }
+    block.classList.remove('answered');
+    block.classList.add(correct ? 'correct' : 'wrong');
+  }
+
+  // Auto-score writing, then show results
+  scoreWritingThenFinish(sectionScores, sectionMax);
+}
+
+function displayResults(scores, max) {
+  const total = Object.values(scores).reduce((a,b)=>a+b,0);
+  const totalMax = Object.values(max).reduce((a,b)=>a+b,0);
+
+  // Score table
+  let thtml = '<tr><th>Section</th><th>Score</th><th>Max</th><th>%</th></tr>';
+  for (const [k,s] of Object.entries(SECTIONS)) {
+    const pct = max[k] ? Math.round(scores[k]/max[k]*100) : 0;
+    if (k === 'E') {
+      thtml += `<tr><td style="text-align:left;font-weight:600;"><span style="color:${s.color}">■</span> ${k}. ${s.label}</td><td colspan="3" style="color:var(--muted);font-style:italic;">講師採点（後日反映）</td></tr>`;
+    } else {
+      thtml += `<tr><td style="text-align:left;font-weight:600;"><span style="color:${s.color}">■</span> ${k}. ${s.label}</td><td>${scores[k]}</td><td>${max[k]}</td><td>${pct}%</td></tr>`;
+    }
+  }
+  const totalNoW = total - scores.E;
+  const maxNoW = totalMax - max.E;
+  thtml += `<tr class="total"><td style="text-align:left;font-weight:700;">TOTAL（Writing除く）</td><td>${totalNoW}</td><td>${maxNoW}</td><td>${Math.round(totalNoW/maxNoW*100)}%</td></tr>`;
+  document.getElementById('scoreTbl').innerHTML = thtml;
+
+  // School matching
+  const pcts = {
+    L: max.A ? scores.A/max.A*100 : 0,
+    G: max.B ? scores.B/max.B*100 : 0,
+    V: max.C ? scores.C/max.C*100 : 0,
+    R: max.D ? scores.D/max.D*100 : 0,
+    W: max.E ? scores.E/max.E*100 : 0,
+  };
+
+  let shtml = '<tr><th>志望校</th><th>適性スコア</th><th>合格目安</th><th>判定</th><th>コメント</th></tr>';
+  for (const sch of SCHOOLS) {
+    const aptitude = pcts.L*sch.L + pcts.G*sch.G + pcts.V*sch.V + pcts.R*sch.R + pcts.W*sch.W;
+    const diff = aptitude - sch.target;
+    let rating, rclass, comment;
+    if (aptitude >= sch.target) { rating='A'; rclass='rating-a'; comment='合格圏内 🟢'; }
+    else if (aptitude >= sch.target - 20) { rating='B'; rclass='rating-b'; comment='射程圏内 — 弱点補強で合格可能'; }
+    else if (aptitude >= sch.target - 40) { rating='C'; rclass='rating-c'; comment='努力圏 — 計画的な対策が必要'; }
+    else { rating='D'; rclass='rating-d'; comment='基礎力強化が先決'; }
+    shtml += `<tr><td class="sname">${sch.name}</td><td>${aptitude.toFixed(1)}%</td><td>${sch.target}%</td><td class="${rclass}">${rating}</td><td style="text-align:left;font-size:11px;">${comment}</td></tr>`;
+  }
+  document.getElementById('schoolTbl').innerHTML = shtml;
+
+  // Advice
+  const weakest = Object.entries(pcts).sort((a,b)=>a[1]-b[1])[0];
+  const weakMap = {L:'Listening',G:'Grammar',V:'Vocabulary',R:'Reading',W:'Writing'};
+  document.getElementById('schoolAdvice').innerHTML = `
+    <strong>⚠️ 重要な注意点：</strong>この適性判定は模試の得点に基づく参考値です。実際の入試では面接・出願書類等も評価に含まれます。<br><br>
+    <strong>📌 最優先で強化すべき技能：</strong>${weakMap[weakest[0]]}（得点率 ${weakest[1].toFixed(0)}%）<br>
+    <br><strong>📝 Writing（25点分）は講師が後日採点します。</strong>上記スコアにはWriting得点は含まれていません。
+  `;
+}
+
+// ================================================================
+// LAUNCH — now handled in TIMER & AUDIO SYSTEM section
+// ================================================================
+
+// ================================================================
+// TIMER & AUDIO SYSTEM
+// ================================================================
+let examStarted = false;
+let timerInterval = null;
+let totalSeconds = 80 * 60;
+let audioPlayed = false;
+let audioPlaying = false;
+let audioEnded = false;
+let previewCountdown = null;
+let currentUserId = ''; // ⑫ set during login
+
+// Extract userId from token (base64 decode: userId_timestamp_compass2026)
+try {
+  if (authToken) {
+    var decoded = atob(authToken);
+    var parts = decoded.split('_');
+    if (parts.length >= 3 && parts[parts.length - 1] === 'compass2026') {
+      parts.pop(); // remove compass2026
+      parts.pop(); // remove timestamp
+      currentUserId = parts.join('_');
+    }
+  }
+} catch(e) { console.error('Token decode error:', e); }
+
+// ③ Listening lock — lock/unlock Section A questions (not audio panel)
+function lockListeningSection() {
+  var sections = document.querySelectorAll('.section');
+  if (sections[0]) sections[0].classList.add('listening-q-locked');
+}
+function unlockListeningSection() {
+  var sections = document.querySelectorAll('.section');
+  if (sections[0]) sections[0].classList.remove('listening-q-locked');
+}
+
+// Listening confirm dialog
+function showListeningConfirm() {
+  document.getElementById('listeningConfirmOverlay').classList.add('show');
+}
+function cancelListeningStart() {
+  document.getElementById('listeningConfirmOverlay').classList.remove('show');
+}
+function confirmListeningStart() {
+  document.getElementById('listeningConfirmOverlay').classList.remove('show');
+
+  // CRITICAL: audio.play() must be called directly inside this click handler
+  // to satisfy browser autoplay policy in GAS iframe
+  if (audioPlayed) return;
+  audioPlayed = true;
+  audioPlaying = true;
+
+  var audio = document.getElementById('listeningAudio');
+  var playBtn = document.getElementById('playBtn');
+  var statusEl = document.getElementById('timerStatus');
+  var trackTitle = document.getElementById('trackTitle');
+  var progressFill = document.getElementById('progressFill');
+  var warning = document.getElementById('audioWarning');
+
+  // Unlock listening section
+  unlockListeningSection();
+
+  // Show fixed volume widget
+  document.getElementById('volFixed').classList.add('show');
+
+  // Update UI
+  statusEl.textContent = '🔊 リスニング再生中 — Listening in progress...';
+  statusEl.classList.add('listening-active');
+  playBtn.classList.add('playing');
+  playBtn.textContent = '⏸';
+  playBtn.disabled = true;
+  playBtn.onclick = null;
+  trackTitle.textContent = 'Now Playing — Section A: Listening Comprehension';
+  warning.textContent = '🔊 再生中... 音声は1回のみです。集中して聞いてください。';
+
+  audio.volume = document.getElementById('volSlider').value / 100;
+
+  // Play IMMEDIATELY from this click context
+  var playPromise = audio.play();
+  if (playPromise !== undefined) {
+    playPromise.catch(function(e) {
+      // Fallback: if still blocked, let user click play button directly
+      playBtn.disabled = false;
+      playBtn.classList.remove('playing');
+      playBtn.textContent = '▶';
+      trackTitle.textContent = '⚠ 再生できませんでした。▶ ボタンを直接押してください。';
+      playBtn.onclick = function() {
+        audio.play();
+        playBtn.disabled = true;
+        playBtn.classList.add('playing');
+        playBtn.textContent = '⏸';
+        playBtn.onclick = null;
+      };
+    });
+  }
+
+  var trackMarkers = [
+    {t:0,   label:'📢 Section Introduction'},
+    {t:37,  label:'📢 Part 1 — Short Conversations'},
+    {t:53,  label:'🗣 Conversation 1 — Airport'},
+    {t:91,  label:'❓ Question 1'},
+    {t:103, label:'🗣 Conversation 2 — Group Project'},
+    {t:133, label:'❓ Question 2'},
+    {t:146, label:'🗣 Conversation 3 — Presentation'},
+    {t:174, label:'❓ Question 3'},
+    {t:186, label:'🗣 Conversation 4 — Parking'},
+    {t:213, label:'❓ Question 4'},
+    {t:227, label:'🗣 Conversation 5 — Phone Policy'},
+    {t:265, label:'❓ Question 5'},
+    {t:278, label:'📢 Part 2 — Academic Passage'},
+    {t:300, label:'🎓 Academic Talk — Coral Reefs'},
+    {t:478, label:'❓ Question 6'},
+    {t:493, label:'❓ Question 7'},
+    {t:507, label:'❓ Question 8'},
+    {t:519, label:'❓ Question 9'},
+    {t:532, label:'❓ Question 10'},
+    {t:545, label:'✅ End of Listening'},
+  ];
+
+  audio.addEventListener('timeupdate', function() {
+    var pct = (audio.currentTime / audio.duration) * 100;
+    progressFill.style.width = pct + '%';
+    var currentTrack = trackMarkers[0].label;
+    for (var mi = 0; mi < trackMarkers.length; mi++) {
+      if (audio.currentTime >= trackMarkers[mi].t) currentTrack = trackMarkers[mi].label;
+    }
+    trackTitle.textContent = currentTrack;
+  });
+
+  audio.addEventListener('ended', function() {
+    audioPlaying = false;
+    audioEnded = true;
+    statusEl.textContent = '✅ リスニング終了 — 残り時間で他のセクションに進んでください';
+    statusEl.classList.remove('listening-active');
+    playBtn.classList.remove('playing');
+    playBtn.textContent = '✓';
+    trackTitle.textContent = '✅ Listening Complete — 音声再生済み';
+    progressFill.style.width = '100%';
+    warning.textContent = '✅ リスニング音声の再生は終了しました。';
+    setTimeout(function() { document.getElementById('volFixed').classList.remove('show'); }, 10000);
+    lockListeningSection();
+  });
+}
+
+// ② Checkbox enables start button
+document.addEventListener('DOMContentLoaded', function() {
+  var cb = document.getElementById('confirmCheck');
+  var btn = document.getElementById('startBtn');
+  if (cb && btn) {
+    cb.addEventListener('change', function() {
+      btn.disabled = !cb.checked;
+      btn.style.opacity = cb.checked ? '1' : '0.4';
+      btn.style.cursor = cb.checked ? 'pointer' : 'not-allowed';
+    });
+  }
+});
+
+// ⑧ Pre-launch: check attempt + show countdown
+function prelaunchExam() {
+  // Check 1-attempt limit via GAS
+  if (currentUserId) {
+    gasGet({ action: 'checkAttempt', userId: currentUserId })
+      .then(function(res) {
+        if (res && !res.allowed) {
+          alert(res.message || 'この試験は既に受験済みです。');
+          return;
+        }
+        startCountdown();
+      })
+      .catch(function() { startCountdown(); });
+  } else {
+    startCountdown();
+  }
+}
+
+function startCountdown() {
+  var overlay = document.getElementById('countdownOverlay');
+  var numEl = document.getElementById('countdownNum');
+  var tipsEl = document.getElementById('countdownTips');
+  overlay.classList.add('show');
+
+  tipsEl.innerHTML = '<div style="font-size:13px;color:#ccff00;font-weight:700;margin-bottom:10px;letter-spacing:1px;">⚠ 試験前の確認事項（6項目）</div>' +
+    '<div>❶ 試験中は他のタブ・アプリに切り替えないでください</div>' +
+    '<div>❷ リスニング音声は <strong style="color:#ccff00;">▶ ボタン</strong>で再生（1回のみ）</div>' +
+    '<div>❸ 制限時間は <strong style="color:#ccff00;">80分</strong> です</div>' +
+    '<div>❹ Writingは講師が <strong style="color:#ccff00;">3営業日以内</strong> に採点します</div>' +
+    '<div>❺ 結果は登録メールアドレスに送信されます</div>' +
+    '<div>❻ この試験は <strong style="color:#ff4d00;">1回のみ</strong> 受験可能です</div>';
+
+  var count = 10;
+  numEl.textContent = count;
+
+  var cdInterval = setInterval(function() {
+    count--;
+    numEl.textContent = count;
+    if (count <= 0) {
+      clearInterval(cdInterval);
+      overlay.classList.remove('show');
+      launchExam();
+    }
+  }, 1000);
+}
+
+function launchExam() {
+  document.getElementById('landingPage').classList.add('hidden');
+  document.getElementById('examWrap').classList.add('show');
+  window.scrollTo(0, 0);
+
+  // Audio is hosted locally on GitHub Pages — no GAS proxy needed
+
+  // ③ Lock listening section initially
+  lockListeningSection();
+
+  // Show sidebar ⑦
+  document.getElementById('sectionSidebar').classList.remove('hidden');
+
+  activateAntiCheat();
+  startExam();
+}
+
+function startExam() {
+  if (examStarted) return;
+  examStarted = true;
+
+  // ⑤ No auto-play countdown — player button is manual
+  document.getElementById('timerStatus').textContent = '試験中 — ▶ ボタンでリスニングを開始できます';
+  document.getElementById('timerStatus').classList.add('listening-active');
+
+  // Enable play button — shows confirm dialog first ⑤
+  var playBtn = document.getElementById('playBtn');
+  if (playBtn) {
+    playBtn.disabled = false;
+    playBtn.onclick = function() { showListeningConfirm(); };
+  }
+
+  // Start 80-min timer
+  timerInterval = setInterval(function() {
+    totalSeconds--;
+    if (totalSeconds <= 0) {
+      clearInterval(timerInterval);
+      timerInterval = null;
+      document.getElementById('timerClock').textContent = '00:00';
+      document.getElementById('timerStatus').textContent = '⏰ 時間切れ — Time\'s up!';
+      forceFinish = true;
+      gradeExam();
+      return;
+    }
+    var m = Math.floor(totalSeconds / 60);
+    var s = totalSeconds % 60;
+    document.getElementById('timerClock').textContent = m + ':' + (s < 10 ? '0' : '') + s;
+
+    // ⑤ Warning if <10 min and audio not yet played
+    if (totalSeconds === 600 && !audioPlayed) {
+      document.getElementById('timerStatus').textContent = '⚠ 残り10分 — リスニング未再生！▶ ボタンを押してください';
+    }
+  }, 1000);
+
+  // Update sidebar ⑦
+  updateSidebar();
+}
+
+// playListeningAudio — now integrated into confirmListeningStart above
+
+function setVolume(val) {
+  const audio = document.getElementById('listeningAudio');
+  if (audio) audio.volume = val / 100;
+  document.getElementById('volVal').textContent = val;
+  document.getElementById('volIcon').textContent = val == 0 ? '🔇' : val < 40 ? '🔉' : '🔊';
+}
+
+function toggleMute() {
+  const slider = document.getElementById('volSlider');
+  if (parseInt(slider.value) > 0) {
+    slider.dataset.prev = slider.value;
+    slider.value = 0;
+  } else {
+    slider.value = slider.dataset.prev || 80;
+  }
+  setVolume(slider.value);
+}
+
+// ================================================================
+// ANTI-CHEAT: Tab switch / App switch / Screenshot detection
+// ================================================================
+let violationCount = 0;
+let antiCheatActive = false;
+let lastViolationTime = 0; // ④ debounce to prevent rapid double-counting
+
+function activateAntiCheat() {
+  if (antiCheatActive) return;
+  antiCheatActive = true;
+
+  // Prevent page reload / close / back
+  window.addEventListener('beforeunload', function(e) {
+    if (!examStarted || graded) return;
+    e.preventDefault();
+    e.returnValue = '試験中です。ページを離れると回答が失われます。';
+    return e.returnValue;
+  });
+  history.pushState(null, null, location.href);
+  window.addEventListener('popstate', function() {
+    if (!examStarted || graded) return;
+    history.pushState(null, null, location.href);
+  });
+
+  // 1. Page Visibility API — tab switch, app switch, minimize
+  document.addEventListener('visibilitychange', function() {
+    if (!examStarted || graded) return;
+    if (document.hidden) {
+      handleViolation('別のタブまたはアプリに切り替えが検出されました。');
+    }
+  });
+
+  // ④ Window blur — with debounce (3 second cooldown to avoid Meet/mute false positives)
+  // REMOVED: blur event causes too many false positives with Google Meet, system dialogs, etc.
+  // The visibilitychange event above is sufficient and more reliable.
+
+  // 3. Keyboard shortcuts
+  document.addEventListener('keydown', function(e) {
+    if (!examStarted || graded) return;
+    if (e.key === 'F5') { e.preventDefault(); e.stopPropagation(); return false; }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'r') { e.preventDefault(); e.stopPropagation(); return false; }
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') { e.preventDefault(); e.stopPropagation(); return false; }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'w') { e.preventDefault(); e.stopPropagation(); return false; }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'l') { e.preventDefault(); e.stopPropagation(); return false; }
+    if (e.key === 'PrintScreen') { e.preventDefault(); handleViolation('スクリーンショットの操作が検出されました。'); }
+    if ((e.metaKey || e.ctrlKey) && e.shiftKey && (e.key === '3' || e.key === '4' || e.key === '5')) { e.preventDefault(); handleViolation('スクリーンショットの操作が検出されました。'); }
+    if (e.ctrlKey && e.shiftKey && e.key === 'I') { e.preventDefault(); handleViolation('開発者ツールの起動が検出されました。'); }
+  });
+
+  // Right-click prevention
+  document.addEventListener('contextmenu', function(e) { if (!examStarted || graded) return; e.preventDefault(); });
+  // Copy prevention
+  document.addEventListener('copy', function(e) { if (!examStarted || graded) return; e.preventDefault(); });
+}
+
+// ⑩ Warning only — NO forced termination
+function handleViolation(reason) {
+  if (graded) return;
+  // ④ Debounce: ignore if within 3 seconds of last violation
+  var now = Date.now();
+  if (now - lastViolationTime < 3000) return;
+  lastViolationTime = now;
+
+  violationCount++;
+  alert('⚠️ 警告 (' + violationCount + '回目): ' + reason + '\n\n試験中は他のタブやアプリに切り替えないでください。\n警告回数は講師に報告されます。');
+  // Update sidebar if visible
+  updateSidebar();
+}
+
+// ⑦ Section sidebar — scroll + unanswered highlight
+function scrollToSection(sec) {
+  var sections = document.querySelectorAll('.section');
+  var secMap = {A:0, B:1, C:2, D:3, E:4};
+  var idx = secMap[sec];
+  if (sections[idx]) sections[idx].scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+function updateSidebar() {
+  if (!examStarted) return;
+  var sectionQs = {A:[], B:[], C:[], D:[], E:[]};
+  for (var qi = 0; qi < QUESTIONS.length; qi++) {
+    var q = QUESTIONS[qi];
+    sectionQs[q.sec].push(q.id);
+  }
+  // Check writing
+  var summaryEl = document.getElementById('summaryText');
+  var essayEl = document.getElementById('essayText');
+  var writingDone = (summaryEl && summaryEl.value.trim().length > 0) && (essayEl && essayEl.value.trim().length > 0);
+
+  for (var sec in sectionQs) {
+    var dot = document.getElementById('sb-' + sec);
+    if (!dot) continue;
+    if (sec === 'E') {
+      dot.classList.toggle('has-unanswered', !writingDone);
+      continue;
+    }
+    var hasUnanswered = false;
+    for (var i = 0; i < sectionQs[sec].length; i++) {
+      if (answers[sectionQs[sec][i]] === undefined) { hasUnanswered = true; break; }
+    }
+    dot.classList.toggle('has-unanswered', hasUnanswered);
+  }
+}
+// Update sidebar periodically
+setInterval(function() { if (examStarted && !graded) updateSidebar(); }, 3000);
+
+// Remove old launchExam reference (now in TIMER section)
+
+// Init
+render();
+</script>
+</body>
+</html>
