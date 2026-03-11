@@ -227,7 +227,7 @@ table.score-tbl{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-s
 /* Section Sidebar ⑦ */
 .section-sidebar{position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:100;display:flex;flex-direction:column;gap:4px;padding:8px 6px;background:rgba(0,0,0,.7);border-radius:8px 0 0 8px;backdrop-filter:blur(6px);}
 .section-sidebar.hidden{display:none;}
-.sidebar-dot{width:36px;height:36px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;color:#fff;cursor:pointer;transition:all .2s;border:2px solid transparent;}
+.sidebar-dot{width:auto;min-width:36px;height:auto;padding:6px 8px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;color:#fff;cursor:pointer;transition:all .2s;border:2px solid transparent;white-space:nowrap;line-height:1.2;text-align:center;}
 .sidebar-dot:hover{transform:scale(1.1);}
 .sidebar-dot.has-unanswered{border-color:#ff4d00;animation:pulse-border 2s infinite;}
 @keyframes pulse-border{0%,100%{border-color:#ff4d00;}50%{border-color:transparent;}}
@@ -377,11 +377,11 @@ table.score-tbl{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-s
 
 <!-- ⑦ Section Sidebar -->
 <div class="section-sidebar hidden" id="sectionSidebar">
-  <div class="sidebar-dot" style="background:#2d5a87" onclick="scrollToSection('A')" id="sb-A" title="A. Listening">A</div>
-  <div class="sidebar-dot" style="background:#6b4c8a" onclick="scrollToSection('B')" id="sb-B" title="B. Grammar">B</div>
-  <div class="sidebar-dot" style="background:#2a7d5f" onclick="scrollToSection('C')" id="sb-C" title="C. Vocabulary">C</div>
-  <div class="sidebar-dot" style="background:#b8860b" onclick="scrollToSection('D')" id="sb-D" title="D. Reading">D</div>
-  <div class="sidebar-dot" style="background:#c44536" onclick="scrollToSection('E')" id="sb-E" title="E. Writing">E</div>
+  <div class="sidebar-dot" style="background:#2d5a87" onclick="scrollToSection('A')" id="sb-A" title="A. Listening">A<br>Listen</div>
+  <div class="sidebar-dot" style="background:#6b4c8a" onclick="scrollToSection('B')" id="sb-B" title="B. Grammar">B<br>Grammar</div>
+  <div class="sidebar-dot" style="background:#2a7d5f" onclick="scrollToSection('C')" id="sb-C" title="C. Vocabulary">C<br>Vocab</div>
+  <div class="sidebar-dot" style="background:#b8860b" onclick="scrollToSection('D')" id="sb-D" title="D. Reading">D<br>Reading</div>
+  <div class="sidebar-dot" style="background:#c44536" onclick="scrollToSection('E')" id="sb-E" title="E. Writing">E<br>Writing</div>
 </div>
 
 </div><!-- /container -->
