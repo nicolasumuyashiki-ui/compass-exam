@@ -1409,7 +1409,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   }
 
-  // Auto-start if coming from audio-check.html (start=1 in URL)
+  // Auto-start if coming from audio_check.html (start=1 in URL)
   if (urlParams.get('start') === '1') {
     // Skip landing page, go straight to exam with attempt check + countdown
     if (currentUserId) {
@@ -1432,7 +1432,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function prelaunchExam() {
   // Redirect to audio check page (passing URL params for token)
   var params = window.location.search;
-  window.location.href = 'audio-check.html' + params;
+  window.location.href = 'audio_check.html' + params;
 }
 
 function startCountdown() {
