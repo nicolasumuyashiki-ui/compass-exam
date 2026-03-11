@@ -28,7 +28,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 50%,#
 .card-icon{width:52px;height:52px;background:#ccff00;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;flex-shrink:0;}
 .card-icon svg{width:26px;height:26px;fill:#0a0a0a;}
 .card-title{font-size:1.2em;font-weight:700;color:#fff;text-align:center;margin-bottom:4px;}
-.card-sub{font-size:.85em;color:#999;text-align:center;margin-bottom:24px;}
+.card-sub{font-size:.85em;color:#bbb;text-align:center;margin-bottom:24px;}
 
 /* Audio test */
 .test-box{background:rgba(204,255,0,.06);border:1px solid rgba(204,255,0,.15);border-radius:10px;padding:20px;text-align:center;margin-bottom:20px;}
@@ -44,11 +44,11 @@ body{min-height:100vh;background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 50%,#
 .meter-section{margin-bottom:16px;}
 .meter-track{position:relative;height:28px;background:rgba(255,255,255,.06);border-radius:14px;overflow:hidden;margin-bottom:6px;border:1px solid rgba(255,255,255,.08);}
 .meter-fill{height:100%;width:0%;background:linear-gradient(90deg,#ccff00,#00f0ff);border-radius:14px;transition:width .15s;}
-.meter-labels{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:.7em;color:#666;padding:0 4px;}
+.meter-labels{display:flex;justify-content:space-between;font-family:'JetBrains Mono',monospace;font-size:.7em;color:#aaa;padding:0 4px;}
 .meter-labels .rec-label{color:#ccff00;font-weight:600;}
 
 /* Status */
-.status{text-align:center;font-size:.85em;min-height:22px;margin-bottom:16px;font-weight:500;color:#999;transition:color .3s;}
+.status{text-align:center;font-size:.85em;min-height:22px;margin-bottom:16px;font-weight:500;color:#bbb;transition:color .3s;}
 .status.success{color:#ccff00;}
 .status.error{color:#ff4d00;}
 .status.playing{color:#00f0ff;}
@@ -58,7 +58,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 50%,#
 .btn-primary:hover{box-shadow:0 0 30px rgba(204,255,0,.3);transform:translateY(-1px);}
 .btn-primary:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none;}
 
-.btn-secondary{display:block;width:100%;padding:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;background:transparent;color:#999;border:1.5px solid #333;border-radius:8px;cursor:pointer;transition:all .2s;margin-top:10px;}
+.btn-secondary{display:block;width:100%;padding:12px;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;background:transparent;color:#bbb;border:1.5px solid #333;border-radius:8px;cursor:pointer;transition:all .2s;margin-top:10px;}
 .btn-secondary:hover{border-color:#ccff00;color:#ccff00;}
 
 /* Success screen */
@@ -68,7 +68,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 50%,#
 .hidden{display:none !important;}
 
 /* Checkbox */
-.volume-note{font-size:.8em;color:#666;text-align:center;margin-top:12px;line-height:1.5;}
+.volume-note{font-size:.8em;color:#aaa;text-align:center;margin-top:12px;line-height:1.5;}
 .volume-note strong{color:#ccff00;}
 
 @media(max-width:500px){.card{padding:24px 20px;}}
@@ -137,7 +137,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 50%,#
 
     <div id="troubleshoot" class="hidden" style="margin-top:16px;padding:16px;background:rgba(255,77,0,.06);border:1px solid rgba(255,77,0,.2);border-radius:8px;">
       <div style="font-size:.85em;color:#ff4d00;font-weight:600;margin-bottom:8px;">🔧 トラブルシューティング</div>
-      <div style="font-size:.8em;color:#ccc;line-height:1.7;">
+      <div style="font-size:.8em;color:#ddd;line-height:1.7;">
         1. デバイスの音量を上げてください<br>
         2. イヤホン/スピーカーが正しく接続されているか確認<br>
         3. ブラウザの音声がミュートになっていないか確認<br>
@@ -162,7 +162,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 50%,#
     <div class="card-sub">音声が正常に再生されました。試験を開始できます。</div>
 
     <div class="test-box" style="border-color:rgba(204,255,0,.3);background:rgba(204,255,0,.04);">
-      <div style="font-size:.85em;color:#ccc;line-height:1.8;text-align:left;">
+      <div style="font-size:.85em;color:#ddd;line-height:1.8;text-align:left;">
         ✅ 音声出力 — 正常<br>
         ✅ デバイス — 準備完了<br>
         <span style="color:#ccff00;">▸ 試験画面に進んでください</span>
@@ -173,7 +173,7 @@ body{min-height:100vh;background:linear-gradient(135deg,#0a0a0a 0%,#1a1a2e 50%,#
   </div>
 </div>
 
-<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#333;letter-spacing:2px;">THE COMPASS — TCK WORKSHOP</div>
+<div style="font-family:'JetBrains Mono',monospace;font-size:10px;color:#555;letter-spacing:2px;">THE COMPASS — TCK WORKSHOP</div>
 
 <!-- Test audio: short TTS clip -->
 <audio id="testAudio" preload="auto">
@@ -303,7 +303,7 @@ function showTroubleshoot() {
 function startExam() {
   // Pass through any URL params (token etc)
   var params = window.location.search;
-  window.location.href = 'index.html' + params;
+  var sep = params ? '&' : '?'; window.location.href = 'index.html' + params + sep + 'start=1';
 }
 </script>
 </body>

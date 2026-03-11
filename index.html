@@ -335,7 +335,7 @@ table.score-tbl{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-s
     </label>
   </div>
 
-  <button class="start-btn-big" id="startBtn" onclick="prelaunchExam()" disabled style="opacity:0.4;cursor:not-allowed;">▶ START EXAM</button>
+  <button class="start-btn-big" id="startBtn" onclick="prelaunchExam()" disabled style="opacity:0.4;cursor:not-allowed;">▶ 音声テストへ進む / AUDIO CHECK</button>
 
   <!-- ⑧ Countdown overlay -->
   <div class="countdown-overlay" id="countdownOverlay">
@@ -1408,24 +1408,31 @@ document.addEventListener('DOMContentLoaded', function() {
       btn.style.cursor = cb.checked ? 'pointer' : 'not-allowed';
     });
   }
+
+  // Auto-start if coming from audio-check.html (start=1 in URL)
+  if (urlParams.get('start') === '1') {
+    // Skip landing page, go straight to exam with attempt check + countdown
+    if (currentUserId) {
+      gasGet({ action: 'checkAttempt', userId: currentUserId })
+        .then(function(res) {
+          if (res && !res.allowed) {
+            alert(res.message || 'この試験は既に受験済みです。');
+            return;
+          }
+          startCountdown();
+        })
+        .catch(function() { startCountdown(); });
+    } else {
+      startCountdown();
+    }
+  }
 });
 
 // ⑧ Pre-launch: check attempt + show countdown
 function prelaunchExam() {
-  // Check 1-attempt limit via GAS
-  if (currentUserId) {
-    gasGet({ action: 'checkAttempt', userId: currentUserId })
-      .then(function(res) {
-        if (res && !res.allowed) {
-          alert(res.message || 'この試験は既に受験済みです。');
-          return;
-        }
-        startCountdown();
-      })
-      .catch(function() { startCountdown(); });
-  } else {
-    startCountdown();
-  }
+  // Redirect to audio check page (passing URL params for token)
+  var params = window.location.search;
+  window.location.href = 'audio-check.html' + params;
 }
 
 function startCountdown() {
