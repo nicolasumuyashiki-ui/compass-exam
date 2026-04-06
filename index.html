@@ -459,7 +459,24 @@ var GAS_API_URL = 'https://script.google.com/a/macros/tckworkshop.co.jp/s/AKfycb
 // Extract token and userId from URL params (passed from GAS login redirect)
 var urlParams = new URLSearchParams(window.location.search);
 var authToken = urlParams.get('token') || '';
-
+// 認証チェック — トークンがない or 無効ならGASログインページへリダイレクト
+(function() {
+  if (!authToken) {
+    window.location.href = GAS_API_URL;
+    return;
+  }
+  fetch(GAS_API_URL + '?action=verifyToken&token=' + encodeURIComponent(authToken))
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (!res.valid) {
+        alert('セッションの有効期限が切れました。再度ログインしてください。');
+        window.location.href = GAS_API_URL;
+      }
+    })
+    .catch(function(err) {
+      console.error('認証チェックエラー:', err);
+    });
+})();
 // Fetch helper for GAS API
 function gasGet(params) {
   var qs = Object.keys(params).map(function(k) { return k + '=' + encodeURIComponent(params[k]); }).join('&');
