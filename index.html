@@ -288,6 +288,9 @@ table.score-tbl{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-s
 </style>
 </head>
 <body>
+  <style id="auth-guard">
+  .landing, .exam-wrap, .finish-screen { visibility: hidden; }
+</style>
 <!-- ===== LANDING / INSTRUCTION PAGE ===== -->
 <div class="landing" id="landingPage">
   <div class="landing-logo">THE <span>COMPASS</span></div>
@@ -453,10 +456,17 @@ var authToken = urlParams.get('token') || '';
       if (!res.valid) {
         alert('セッションの有効期限が切れました。再度ログインしてください。');
         window.location.href = GAS_API_URL;
+      } else {
+        // 認証OK → 画面を表示
+        var guard = document.getElementById('auth-guard');
+        if (guard) guard.remove();
       }
     })
     .catch(function(err) {
       console.error('認証チェックエラー:', err);
+      // エラー時も画面は表示（オフライン対応）
+      var guard = document.getElementById('auth-guard');
+      if (guard) guard.remove();
     });
 })();
 // Fetch helper for GAS API
