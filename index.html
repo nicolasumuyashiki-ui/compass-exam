@@ -134,14 +134,6 @@ table.score-tbl{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-s
 .score-tbl th{background:var(--ink);color:#fff;font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase;}
 .score-tbl .total{background:var(--accent-light);font-weight:700;}
 
-/* School Matching */
-.school-tbl{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-serif;font-size:12.5px;margin-bottom:24px;}
-.school-tbl th,.school-tbl td{border:1px solid var(--border);padding:7px 10px;text-align:center;}
-.school-tbl th{background:#f5f4f0;font-weight:600;font-size:11px;}
-.school-tbl .sname{text-align:left;font-weight:600;font-size:13px;}
-.rating-a{color:var(--green);font-weight:700;}.rating-b{color:var(--accent);font-weight:700;}
-.rating-c{color:var(--gold);font-weight:700;}.rating-d{color:var(--coral);font-weight:700;}
-
 /* Submit / Grade */
 .grade-btn{display:block;margin:32px auto;padding:16px 48px;font-family:'DM Sans',sans-serif;font-weight:700;font-size:16px;background:var(--ink);color:#fff;border:none;border-radius:8px;cursor:pointer;transition:all .2s;letter-spacing:1px;}
 .grade-btn:hover{background:#2d2d5e;transform:translateY(-1px);}
@@ -370,9 +362,6 @@ table.score-tbl{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-s
 <div class="score-section" id="scoreSection" style="display:none;">
   <h2>📊 Results / 診断結果</h2>
   <table class="score-tbl" id="scoreTbl"></table>
-  <h2 style="margin-top:32px;">🎯 志望校適性判定 / School Matching</h2>
-  <table class="school-tbl" id="schoolTbl"></table>
-  <div id="schoolAdvice" class="info" style="border-left-color:var(--coral);margin-top:16px;"></div>
 </div>
 
 <!-- ⑦ Section Sidebar -->
@@ -431,14 +420,7 @@ table.score-tbl{width:100%;border-collapse:collapse;font-family:'DM Sans',sans-s
           <div class="step-icon">📩</div>
           <div class="step-text">
             <strong>結果レポートの送付</strong><br>
-            全セクションの詳細レポート（正誤一覧・技能バランスチャート・志望校適性判定）がメールで届きます。
-          </div>
-        </div>
-        <div class="finish-step">
-          <div class="step-icon">💬</div>
-          <div class="step-text">
-            <strong>今後の学習について</strong><br>
-            結果に基づいた学習アドバイスや対策講座のご案内は、担当講師よりご連絡いたします。
+            全セクションの詳細レポート（正誤一覧・技能バランスチャート・技能別分析）がメールで届きます。
           </div>
         </div>
       </div>
@@ -483,11 +465,31 @@ function gasGet(params) {
   return fetch(GAS_API_URL + '?' + qs).then(function(r) { return r.json(); });
 }
 function gasPost(data) {
-  return fetch(GAS_API_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain' }, // GAS requires text/plain for doPost
-    body: JSON.stringify(data)
-  }).then(function(r) { return r.json(); });
+return fetch(GAS_API_URL, {
+method: 'POST',
+headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+body: JSON.stringify(data),
+redirect: 'follow'
+})
+.then(function(r) {
+// GAS returns 302 redirect on POST — fetch follows it but may switch to GET
+// If response is not JSON (e.g. HTML error page), handle gracefully
+var contentType = r.headers.get('content-type') || '';
+if (contentType.indexOf('application/json') !== -1) {
+return r.json();
+}
+// GAS sometimes returns text/html with JSON inside after redirect
+return r.text().then(function(txt) {
+try { return JSON.parse(txt); }
+catch(e) {
+console.error('GAS response parse error. Status:', r.status, 'Body:', txt.substring(0, 200));
+// Retry with GET method (fallback for POST redirect issue)
+var encoded = encodeURIComponent(JSON.stringify(data));
+return fetch(GAS_API_URL + '?payload=' + encoded)
+.then(function(r2) { return r2.json(); });
+}
+});
+});
 }
 // ================================================================
 // EXAM DATA
@@ -721,19 +723,6 @@ const NONFIC_PASSAGE = `<p>Sleep plays a far more important role in learning tha
 <p>Sleep deprivation also impairs the <span class="bold-w">prefrontal cortex</span>, the part of the brain responsible for concentration, decision-making, and creative problem-solving. This means that staying up all night before an exam — a practice known as "pulling an all-nighter" — may actually lead to worse performance, not better.</p>
 <p>Experts recommend 9 to 11 hours of sleep per night for school-age children. However, a growing number of students report sleeping fewer than 7 hours due to homework, extracurricular activities, and screen time. Some schools have responded by pushing back morning start times, and early results suggest that even a 30-minute delay can improve both grades and attendance.</p>
 <p>Critics argue that later start times create logistical problems for parents and disrupt bus schedules. Nevertheless, advocates insist that the academic and health benefits far <span class="bold-w">outweigh</span> the inconveniences. As one researcher noted, "We would never ask students to run a marathon without proper nutrition. Why do we ask them to learn without proper sleep?"</p>`;
-
-// School weights
-const SCHOOLS = [
-  {name:'渋幕',L:.20,G:.15,V:.15,R:.25,W:.25,target:80},
-  {name:'渋渋',L:0,G:.15,V:.15,R:.40,W:.30,target:75},
-  {name:'洗足A',L:0,G:.30,V:.35,R:.35,W:0,target:65},
-  {name:'頌栄',L:0,G:.15,V:.20,R:.30,W:.35,target:65},
-  {name:'広尾AG',L:0,G:.15,V:.15,R:.35,W:.35,target:60},
-  {name:'三田国際IC',L:.25,G:.05,V:.10,R:.30,W:.30,target:55},
-  {name:'かえつHonors',L:0,G:.20,V:.20,R:.25,W:.35,target:55},
-  {name:'サレジアン世田谷',L:0,G:.05,V:.10,R:.15,W:.70,target:50},
-  {name:'サレジアン赤羽',L:0,G:.10,V:.15,R:.25,W:.50,target:45},
-];
 
 const SECTIONS = {A:{label:'Listening Comprehension',color:'#2d5a87',max:15},B:{label:'Grammar & Usage',color:'#6b4c8a',max:15},C:{label:'Vocabulary',color:'#2a7d5f',max:15},D:{label:'Reading Comprehension',color:'#b8860b',max:30},E:{label:'Writing',color:'#c44536',max:25}};
 
@@ -1235,36 +1224,28 @@ function displayResults(scores, max) {
   thtml += `<tr class="total"><td style="text-align:left;font-weight:700;">TOTAL（Writing除く）</td><td>${totalNoW}</td><td>${maxNoW}</td><td>${Math.round(totalNoW/maxNoW*100)}%</td></tr>`;
   document.getElementById('scoreTbl').innerHTML = thtml;
 
-  // School matching
+  // 技能別分析（学校マッチングの代わり）
   const pcts = {
     L: max.A ? scores.A/max.A*100 : 0,
     G: max.B ? scores.B/max.B*100 : 0,
     V: max.C ? scores.C/max.C*100 : 0,
     R: max.D ? scores.D/max.D*100 : 0,
-    W: max.E ? scores.E/max.E*100 : 0,
   };
+  const weakMap = {L:'Listening',G:'Grammar',V:'Vocabulary',R:'Reading'};
+  const sorted = Object.entries(pcts).sort((a,b)=>a[1]-b[1]);
+  const weakest = sorted[0];
+  const strongest = sorted[sorted.length - 1];
 
-  let shtml = '<tr><th>志望校</th><th>適性スコア</th><th>合格目安</th><th>判定</th><th>コメント</th></tr>';
-  for (const sch of SCHOOLS) {
-    const aptitude = pcts.L*sch.L + pcts.G*sch.G + pcts.V*sch.V + pcts.R*sch.R + pcts.W*sch.W;
-    const diff = aptitude - sch.target;
-    let rating, rclass, comment;
-    if (aptitude >= sch.target) { rating='A'; rclass='rating-a'; comment='合格圏内 🟢'; }
-    else if (aptitude >= sch.target - 20) { rating='B'; rclass='rating-b'; comment='射程圏内 — 弱点補強で合格可能'; }
-    else if (aptitude >= sch.target - 40) { rating='C'; rclass='rating-c'; comment='努力圏 — 計画的な対策が必要'; }
-    else { rating='D'; rclass='rating-d'; comment='基礎力強化が先決'; }
-    shtml += `<tr><td class="sname">${sch.name}</td><td>${aptitude.toFixed(1)}%</td><td>${sch.target}%</td><td class="${rclass}">${rating}</td><td style="text-align:left;font-size:11px;">${comment}</td></tr>`;
-  }
-  document.getElementById('schoolTbl').innerHTML = shtml;
-
-  // Advice
-  const weakest = Object.entries(pcts).sort((a,b)=>a[1]-b[1])[0];
-  const weakMap = {L:'Listening',G:'Grammar',V:'Vocabulary',R:'Reading',W:'Writing'};
-  document.getElementById('schoolAdvice').innerHTML = `
-    <strong>⚠️ 重要な注意点：</strong>この適性判定は模試の得点に基づく参考値です。実際の入試では面接・出願書類等も評価に含まれます。<br><br>
-    <strong>📌 最優先で強化すべき技能：</strong>${weakMap[weakest[0]]}（得点率 ${weakest[1].toFixed(0)}%）<br>
-    <br><strong>📝 Writing（25点分）は講師が後日採点します。</strong>上記スコアにはWriting得点は含まれていません。
+  const analysisDiv = document.createElement('div');
+  analysisDiv.className = 'info';
+  analysisDiv.style.cssText = 'margin-top:20px;border-left-color:var(--accent);';
+  analysisDiv.innerHTML = `
+    <strong>📊 技能別分析</strong><br><br>
+    ✅ <strong>最も得点率の高い技能:</strong> ${weakMap[strongest[0]]}（${strongest[1].toFixed(0)}%）<br>
+    ⚠️ <strong>最優先で強化すべき技能:</strong> ${weakMap[weakest[0]]}（${weakest[1].toFixed(0)}%）<br><br>
+    📝 <strong>Writing（25点分）は講師が後日採点します。</strong>上記スコアにはWriting得点は含まれていません。
   `;
+  document.getElementById('scoreSection').appendChild(analysisDiv);
 }
 
 // ================================================================
