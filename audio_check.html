@@ -277,6 +277,9 @@ function playTestAudio() {
 }
 
 function onTestComplete() {
+  // 音声を強制停止
+  var testAudio = document.getElementById('testAudio');
+  if (testAudio) { testAudio.pause(); testAudio.currentTime = 0; }
   var btn = document.getElementById('playBtn');
   var btnText = document.getElementById('playBtnText');
   var status = document.getElementById('statusMsg');
